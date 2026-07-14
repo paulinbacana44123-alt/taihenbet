@@ -23,7 +23,7 @@ const etapas = {
     proxima: 'apostas',
     titulo: 'Prazer, eu sou o Neytai.',
     texto:
-      'SEJA BEM VINDA, Eu sou Neytai, seu assistente que irá te guiar pelo site, porque o autista que me programou fez um site muito confuso, já que ele é incompetente, então ele precisou me criar pra conseguir te guiar pelo site, não por culpa sua, mas dele, enfim, vamos na nossa jornada, clique no botão das apostas esportivas',
+      'SEJA BEM VINDA, Eu sou Neytai, seu assistente que irá te guiar pelo site, porque o burro que me programou fez um site muito confuso, já que ele é incompetente, então ele precisou me criar pra conseguir te guiar pelo site, não por culpa sua, mas dele, enfim, vamos na nossa jornada, clique no botão das apostas esportivas',
     instrucao: 'Clique no botão destacado para começar o passeio.',
     dicas: [
       'O tour pode ser minimizado a qualquer momento.',
