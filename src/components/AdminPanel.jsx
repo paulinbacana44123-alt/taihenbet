@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import './LiveAdmin.css'
 import BahrainAdminPanel from './BahrainAdminPanel'
+import AnimationArchivePanel from './AnimationArchivePanel'
 
 function gerarId() {
   return crypto.randomUUID()
@@ -346,6 +347,16 @@ function AdminPanel({
         >
           Sessão ao vivo
           <span>{sessaoAoVivo?.ativa ? '●' : '0'}</span>
+        </button>
+
+        <button
+          type="button"
+          data-neytai-target="admin-animation-tab"
+          className={aba === 'animacoes' ? 'active' : ''}
+          onClick={() => setAba('animacoes')}
+        >
+          Central de animações
+          <span>27</span>
         </button>
       </div>
 
@@ -859,6 +870,8 @@ function AdminPanel({
             </div>
           )}
         </>
+      ) : aba === 'animacoes' ? (
+        <AnimationArchivePanel />
       ) : (
         <section className="live-admin-page">
           <div className="live-admin-status-card">

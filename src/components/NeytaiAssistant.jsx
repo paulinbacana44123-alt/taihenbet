@@ -10,7 +10,7 @@ import neytaiImagem from '../assets/neytai-assistente.png'
 const STORAGE_ETAPA = 'taihenbet-neytai-etapa'
 const STORAGE_CONCLUIDO = 'taihenbet-neytai-concluido'
 const STORAGE_VERSAO = 'taihenbet-neytai-versao'
-const VERSAO_TOUR = 'tour-completo-v3-carta'
+const VERSAO_TOUR = 'tour-completo-v4-central-animacoes'
 
 const etapas = {
   boasVindas: {
@@ -160,12 +160,12 @@ const etapas = {
     proxima: 'crash',
     titulo: 'Agora começa a ruína fictícia.',
     texto:
-      'Esse aqui é o Taigrinho, clique para girar a roleta e ver se você tem sorte, porque você vai precisar, mas se você conseguir um mega-ganho, você terá uma surpresa hehehe, caso você não consiga um mega-ganho, você pode apertar no botãozinho ali em baixo só pra ver a surpresa, fica ao seu critério, aperte o botão zinho quando terminar o game',
+      'Esse aqui é o Taigrinho, clique para girar a roleta e ver se você tem sorte, porque você vai precisar. Se você conseguir um mega-ganho, você terá uma surpresa hehehe. Quando terminar de jogar, aperte o botãozinho no canto da tela para continuar o tour.',
     botaoPausa: 'Vou girar essa atrocidade',
     dicas: [
       'As linhas L1 até L5 mostram as combinações possíveis.',
       'A tabela ao lado explica os multiplicadores dos símbolos.',
-      'No localhost existem botões para testar derrota e mega ganho.',
+      'Todos os finais podem ser vistos depois na Central de Animações do Painel.',
     ],
   },
   crash: {
@@ -179,12 +179,12 @@ const etapas = {
     proxima: 'derby',
     titulo: 'O mercado livre acabou.',
     texto:
-      'Esse é o Crash do Regime, você clica e deixa a setinha subir, se passar de 10, você pode parar e fugir da ditadura, mas se eles te pegarem.... Tu mamou man, caso não consiga passar de 10 nenhuma vez, tem o mesmo botão pra testar a animação la em baixo pra você ver a animação que faria, aperte no botãozinho quando acabar de jogar',
+      'Esse é o Crash do Regime, você clica e deixa a setinha subir, se passar de 10, você pode parar e fugir da ditadura, mas se eles te pegarem.... Tu mamou man. Quando terminar de jogar, aperte o botãozinho no canto da tela para continuar o tour.',
     botaoPausa: 'Vou fugir do regime',
     dicas: [
       'Quanto mais o multiplicador sobe, maior o retorno.',
       'Se a Comandante encerrar antes da retirada, a entrada é confiscada.',
-      'O botão de teste só aparece durante o desenvolvimento local.',
+      'Os finais de fuga e confisco ficam disponíveis na Central de Animações.',
     ],
   },
   derby: {
@@ -385,21 +385,54 @@ const etapas = {
     pagina: 'admin',
     alvo: 'admin-page',
     modo: 'pausa',
-    proxima: 'irInicio',
+    proxima: 'irCentralAnimacoes',
     titulo: 'O centro de controle da confusão.',
     texto:
-      'No Painel dá para publicar as sete rodadas do Bahrein, suspender partidas, decidir vencedores, editar odds, iniciar sessões ao vivo e publicar atualizações. No localhost também aparecem botões para testar anúncio, falência e a tela inicial. Em resumo: daqui você controla quase tudo, então clique com a responsabilidade de quem claramente não terá responsabilidade nenhuma.',
+      'No Painel dá para publicar as sete rodadas do Bahrein, suspender partidas, decidir vencedores, editar odds, iniciar sessões ao vivo e publicar atualizações. Também existe uma aba dedicada a todos os vídeos e finais do site. Em resumo: daqui você controla quase tudo, então clique com a responsabilidade de quem claramente não terá responsabilidade nenhuma.',
     botaoPausa: 'Prometo não destruir o site',
     dicas: [
       'Liga do Bahrein: publica rodadas e resultados.',
       'Editar odds: altera ou exclui mercados.',
       'Sessão ao vivo: escolhe mercados e atualizações.',
-      'Os testes de desenvolvimento não alteram o saldo real.',
+      'Central de animações: mostra os finais sem alterar saldo ou histórico.',
+    ],
+  },
+  irCentralAnimacoes: {
+    id: 'irCentralAnimacoes',
+    numero: 24,
+    grupo: 'PAINEL ADMINISTRATIVO',
+    pagina: 'admin',
+    alvo: 'admin-animation-tab',
+    modo: 'alvo',
+    proxima: 'centralAnimacoes',
+    titulo: 'O arquivo secreto finalmente ficou público.',
+    texto:
+      'Clique na aba “Central de animações”. O programador finalmente aceitou que você provavelmente não vai conseguir desbloquear todos os finais na raça.',
+    instrucao:
+      'Clique na aba Central de animações destacada.',
+  },
+  centralAnimacoes: {
+    id: 'centralAnimacoes',
+    numero: 25,
+    grupo: 'CENTRAL DE ANIMAÇÕES',
+    pagina: 'admin',
+    alvo: 'animation-gallery',
+    modo: 'pausa',
+    proxima: 'irInicio',
+    titulo: 'Todos os spoilers em um só lugar.',
+    texto:
+      'Essa é a Central de Animações. Aqui existem 27 botões para assistir aos anúncios, falência, entrada do Neytai, resultados da TaiMandioca, Taigrinho, Crash, corrida do Derby, todas as seis vitórias dos cavalinhos e os vídeos do Museu. Nada daqui gasta TaiCoins ou modifica o histórico. É basicamente uma galeria oficial de finais para quem não quer passar seis horas tentando vencer o Protocolo Mambo.',
+    botaoPausa: 'Vou maratonar os finais depois',
+    dicas: [
+      'Use os filtros para separar cada jogo.',
+      'As setas do player passam para a prévia anterior ou seguinte.',
+      'Esc fecha qualquer vídeo ou animação.',
+      'Esta seção funciona também na versão publicada pela Vercel.',
     ],
   },
   irInicio: {
     id: 'irInicio',
-    numero: 24,
+    numero: 26,
     grupo: 'NAVEGAÇÃO',
     pagina: 'admin',
     alvo: 'nav-inicio',
@@ -412,7 +445,7 @@ const etapas = {
   },
   homeGeral: {
     id: 'homeGeral',
-    numero: 25,
+    numero: 27,
     grupo: 'PÁGINA INICIAL',
     pagina: 'inicio',
     alvo: 'home-general',
@@ -429,7 +462,7 @@ const etapas = {
   },
   museuPreview: {
     id: 'museuPreview',
-    numero: 26,
+    numero: 28,
     grupo: 'PÁGINA INICIAL',
     pagina: 'inicio',
     alvo: 'home-museum-preview',
@@ -446,7 +479,7 @@ const etapas = {
   },
   avisoRodape: {
     id: 'avisoRodape',
-    numero: 27,
+    numero: 29,
     grupo: 'AVISO FINAL',
     pagina: 'inicio',
     alvo: 'anti-betting-footer',
@@ -463,7 +496,7 @@ const etapas = {
   },
   irParaTai: {
     id: 'irParaTai',
-    numero: 28,
+    numero: 30,
     grupo: 'ÚLTIMA PARADA',
     pagina: 'inicio',
     alvo: 'nav-para-tai',
@@ -480,7 +513,7 @@ const etapas = {
   },
   cartaParaTai: {
     id: 'cartaParaTai',
-    numero: 29,
+    numero: 31,
     grupo: 'PARA A TAI',
     pagina: 'para-tai',
     alvo: 'final-message-page',
@@ -497,7 +530,7 @@ const etapas = {
   },
   final: {
     id: 'final',
-    numero: 30,
+    numero: 32,
     grupo: 'FIM DO TOUR',
     pagina: 'para-tai',
     modo: 'final',
