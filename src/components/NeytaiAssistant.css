@@ -1,0 +1,594 @@
+/* ================================================================
+   NEYTAI — ASSISTENTE PESSOAL DO TOUR
+   ================================================================ */
+
+.neytai-assistant {
+  position: fixed;
+  z-index: 180000;
+  right: 18px;
+  bottom: 15px;
+  display: flex;
+  max-width: min(760px, calc(100vw - 30px));
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 0;
+  pointer-events: none;
+  animation: neytai-assistant-enter 0.5s both;
+}
+
+.neytai-character {
+  position: relative;
+  z-index: 2;
+  width: clamp(150px, 17vw, 250px);
+  height: clamp(210px, 28vw, 390px);
+  flex-shrink: 0;
+  overflow: visible;
+  pointer-events: none;
+  filter: drop-shadow(0 22px 28px rgba(0, 0, 0, 0.5));
+}
+
+.neytai-character img {
+  position: absolute;
+  z-index: 2;
+  right: -11px;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+}
+
+.neytai-character-glow {
+  position: absolute;
+  z-index: 1;
+  right: 4%;
+  bottom: 2%;
+  width: 82%;
+  height: 75%;
+  border-radius: 50%;
+  background: rgba(198, 81, 241, 0.17);
+  filter: blur(34px);
+  animation: neytai-glow-pulse 1.8s infinite alternate;
+}
+
+.neytai-speech-bubble {
+  position: relative;
+  z-index: 3;
+  width: min(500px, 58vw);
+  margin: 0 0 29px -19px;
+  overflow: visible;
+  padding: 16px;
+  color: #ffffff;
+  border: 1px solid rgba(214, 121, 255, 0.5);
+  border-radius: 21px 21px 7px 21px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.055),
+      transparent 36%
+    ),
+    rgba(17, 15, 21, 0.97);
+  box-shadow:
+    0 27px 75px rgba(0, 0, 0, 0.55),
+    0 0 42px rgba(183, 66, 229, 0.13);
+  backdrop-filter: blur(16px);
+  pointer-events: auto;
+  animation: neytai-bubble-enter 0.48s both;
+}
+
+.neytai-bubble-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.075);
+}
+
+.neytai-bubble-top > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.neytai-bubble-top span {
+  color: #d47df6;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 1.15px;
+}
+
+.neytai-bubble-top strong {
+  color: #ffffff;
+  font-size: 17px;
+}
+
+.neytai-bubble-controls {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.neytai-bubble-controls small {
+  padding: 5px 8px;
+  color: #bd8bd1;
+  border: 1px solid #493552;
+  border-radius: 999px;
+  background: #211923;
+  font-size: 7px;
+  font-weight: 900;
+}
+
+.neytai-bubble-controls button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  color: #d6c3de;
+  border: 1px solid #46384c;
+  border-radius: 8px;
+  background: #211c24;
+  font-size: 17px;
+  cursor: pointer;
+}
+
+.neytai-message-scroll {
+  max-height: min(39vh, 320px);
+  overflow: auto;
+  padding: 12px 4px 5px 0;
+  scrollbar-width: thin;
+  scrollbar-color: #744084 transparent;
+}
+
+.neytai-message-scroll h2 {
+  margin: 0 0 8px;
+  color: #ffffff;
+  font-size: clamp(20px, 2.6vw, 31px);
+  line-height: 1;
+  letter-spacing: -1.3px;
+}
+
+.neytai-message-scroll p {
+  margin: 0;
+  color: #aaa1ad;
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.neytai-instruction {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 11px;
+  padding: 9px 10px;
+  border: 1px solid rgba(219, 118, 255, 0.28);
+  border-radius: 9px;
+  background: rgba(176, 66, 219, 0.08);
+}
+
+.neytai-instruction i {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #db75ff;
+  box-shadow: 0 0 13px #d66eff;
+  animation: neytai-instruction-pulse 0.85s infinite;
+}
+
+.neytai-instruction span {
+  color: #d9b8e8;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.neytai-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 11px;
+}
+
+.neytai-actions button {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 8px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.neytai-primary-action {
+  color: #ffffff;
+  border: 1px solid #c15ae9;
+  background: linear-gradient(
+    135deg,
+    #7829a2,
+    #bd4fdd
+  );
+  box-shadow: 0 10px 24px rgba(170, 51, 214, 0.2);
+}
+
+.neytai-secondary-action {
+  color: #d7a8ec;
+  border: 1px solid #674271;
+  background: #251a29;
+}
+
+.neytai-skip-action {
+  margin-left: auto;
+  color: #77707b;
+  border: 1px solid #343039;
+  background: #1a191e;
+}
+
+.neytai-bubble-tail {
+  position: absolute;
+  right: -15px;
+  bottom: 25px;
+  width: 28px;
+  height: 28px;
+  border-right: 1px solid rgba(214, 121, 255, 0.5);
+  border-bottom: 1px solid rgba(214, 121, 255, 0.5);
+  background: #121016;
+  transform: rotate(-45deg);
+}
+
+.neytai-floating-button {
+  position: fixed;
+  z-index: 180000;
+  right: 19px;
+  bottom: 17px;
+  display: flex;
+  min-width: 72px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 11px 6px 6px;
+  color: #ffffff;
+  border: 1px solid rgba(210, 108, 250, 0.52);
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(187, 68, 228, 0.18),
+      transparent
+    ),
+    rgba(18, 15, 22, 0.97);
+  box-shadow:
+    0 15px 38px rgba(0, 0, 0, 0.48),
+    0 0 30px rgba(182, 65, 226, 0.15);
+  backdrop-filter: blur(13px);
+  cursor: pointer;
+  animation: neytai-floating-enter 0.38s both;
+}
+
+.neytai-floating-button img {
+  width: 46px;
+  height: 46px;
+  object-fit: cover;
+  object-position: center 16%;
+  border: 1px solid #6c3d7b;
+  border-radius: 50%;
+  background: #211822;
+}
+
+.neytai-floating-button span {
+  font-size: 8px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.neytai-floating-button i {
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid #18131c;
+  border-radius: 50%;
+  background: #ff5e9b;
+  box-shadow: 0 0 10px #ff5e9b;
+  animation: neytai-notification-pulse 0.9s infinite;
+}
+
+.neytai-tour-focus {
+  position: relative !important;
+  z-index: 170001 !important;
+  outline: 3px solid #dc75ff !important;
+  outline-offset: 6px !important;
+  border-radius: 12px !important;
+  box-shadow:
+    0 0 0 7px rgba(210, 91, 255, 0.13),
+    0 0 38px rgba(215, 91, 255, 0.56) !important;
+  animation: neytai-target-pulse 0.95s infinite alternate !important;
+}
+
+@keyframes neytai-assistant-enter {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes neytai-bubble-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.76) translate(22px, 28px);
+  }
+
+  70% {
+    opacity: 1;
+    transform: scale(1.025) translate(0, 0);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes neytai-floating-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.65) translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes neytai-glow-pulse {
+  from {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes neytai-instruction-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.45;
+    transform: scale(0.72);
+  }
+}
+
+@keyframes neytai-notification-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.35);
+  }
+}
+
+@keyframes neytai-target-pulse {
+  from {
+    filter: brightness(1);
+  }
+
+  to {
+    filter: brightness(1.22);
+  }
+}
+
+@media (max-width: 850px) {
+  .neytai-assistant {
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+    max-width: none;
+  }
+
+  .neytai-character {
+    width: 120px;
+    height: 190px;
+  }
+
+  .neytai-speech-bubble {
+    width: calc(100vw - 112px);
+    margin-bottom: 15px;
+    margin-left: -22px;
+    padding: 13px;
+  }
+
+  .neytai-message-scroll {
+    max-height: 32vh;
+  }
+}
+
+@media (max-width: 560px) {
+  .neytai-assistant {
+    align-items: flex-end;
+  }
+
+  .neytai-character {
+    width: 88px;
+    height: 145px;
+    margin-right: -5px;
+  }
+
+  .neytai-speech-bubble {
+    width: calc(100vw - 82px);
+    margin: 0 0 8px -20px;
+    border-radius: 16px 16px 5px 16px;
+  }
+
+  .neytai-message-scroll h2 {
+    font-size: 19px;
+  }
+
+  .neytai-message-scroll p {
+    font-size: 9px;
+  }
+
+  .neytai-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .neytai-actions button {
+    width: 100%;
+  }
+
+  .neytai-skip-action {
+    margin-left: 0;
+  }
+
+  .neytai-floating-button {
+    right: 10px;
+    bottom: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neytai-assistant,
+  .neytai-speech-bubble,
+  .neytai-floating-button,
+  .neytai-character-glow,
+  .neytai-instruction i,
+  .neytai-floating-button i,
+  .neytai-tour-focus {
+    animation: none !important;
+  }
+}
+
+/* ================================================================
+   TOUR COMPLETO V2
+   ================================================================ */
+
+.neytai-progress {
+  height: 4px;
+  overflow: hidden;
+  margin-top: 9px;
+  border-radius: 999px;
+  background: #29242e;
+}
+
+.neytai-progress > span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    #7e2bae,
+    #ce64f1,
+    #ff8fb9
+  );
+  box-shadow: 0 0 13px rgba(211, 100, 245, 0.45);
+  transition: width 0.35s ease;
+}
+
+.neytai-tip-list {
+  display: grid;
+  gap: 5px;
+  margin: 11px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.neytai-tip-list li {
+  position: relative;
+  padding: 7px 9px 7px 24px;
+  color: #918896;
+  border: 1px solid #312d35;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.018);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.neytai-tip-list li::before {
+  position: absolute;
+  top: 8px;
+  left: 9px;
+  color: #d578f5;
+  content: '◆';
+  font-size: 6px;
+}
+
+.neytai-back-action {
+  color: #a89aaf;
+  border: 1px solid #403744;
+  background: #1d1920;
+}
+
+.neytai-tour-page-wrapper,
+.neytai-game-area-target {
+  width: 100%;
+}
+
+.neytai-game-area-target {
+  display: block;
+}
+
+/*
+  Evita que o destaque seja escondido atrás do cabeçalho fixo
+  durante as rolagens automáticas.
+*/
+[data-neytai-target] {
+  scroll-margin-top: 105px;
+}
+
+@media (max-width: 560px) {
+  .neytai-tip-list li {
+    font-size: 7px;
+  }
+
+  .neytai-bubble-top span {
+    max-width: 180px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+/* A página final recebe um destaque mais suave no tour. */
+
+.final-message-page.neytai-tour-focus {
+  border-radius: 24px;
+  box-shadow:
+    0 0 0 4px rgba(220, 114, 255, 0.26),
+    0 0 68px rgba(194, 74, 235, 0.18);
+}
+
+.navigation
+  [data-neytai-target='nav-para-tai'] {
+  position: relative;
+}
+
+.navigation
+  [data-neytai-target='nav-para-tai']::after {
+  position: absolute;
+  right: 6px;
+  bottom: 3px;
+  left: 6px;
+  height: 1px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #ff91b8,
+    transparent
+  );
+  content: '';
+  opacity: 0.45;
+}

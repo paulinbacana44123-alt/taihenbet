@@ -1,0 +1,338 @@
+/* ================================================================
+   FALÊNCIA TOTAL — 0 TAICOINS
+   ================================================================ */
+
+.bankruptcy-overlay {
+  position: fixed;
+  z-index: 200000;
+  inset: 0;
+  display: grid;
+  overflow: auto;
+  place-items: center;
+  padding: 22px;
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(166, 55, 210, 0.2),
+      transparent 45%
+    ),
+    rgba(3, 3, 6, 0.95);
+  backdrop-filter: blur(13px);
+  animation: bankruptcy-overlay-enter 0.38s both;
+}
+
+.bankruptcy-backdrop-text {
+  position: fixed;
+  z-index: 0;
+  top: 50%;
+  left: 50%;
+  color: rgba(255, 255, 255, 0.025);
+  font-size: clamp(100px, 20vw, 310px);
+  font-weight: 1000;
+  line-height: 0.8;
+  letter-spacing: -16px;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, -50%) rotate(-6deg);
+}
+
+.bankruptcy-card {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  width: min(680px, 95vw);
+  align-items: center;
+  flex-direction: column;
+  padding: 25px 26px 22px;
+  overflow: hidden;
+  border: 2px solid rgba(211, 91, 255, 0.52);
+  border-radius: 30px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.065),
+      transparent 34%
+    ),
+    #111015;
+  box-shadow:
+    0 38px 120px rgba(0, 0, 0, 0.68),
+    0 0 75px rgba(170, 55, 220, 0.16);
+  text-align: center;
+  animation:
+    bankruptcy-card-enter 0.72s both,
+    bankruptcy-card-tremble 0.5s 0.55s both;
+}
+
+.bankruptcy-card::before {
+  position: absolute;
+  top: -55%;
+  left: -25%;
+  width: 150%;
+  height: 75%;
+  content: '';
+  opacity: 0.28;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(219, 107, 255, 0.5),
+    transparent
+  );
+  transform: rotate(-12deg);
+  animation: bankruptcy-light-sweep 2.2s linear infinite;
+  pointer-events: none;
+}
+
+.bankruptcy-eyebrow {
+  position: relative;
+  z-index: 2;
+  color: #e99fff;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.8px;
+}
+
+.bankruptcy-card h2 {
+  position: relative;
+  z-index: 2;
+  margin: 6px 0 7px;
+  color: #ffffff;
+  font-size: clamp(44px, 8vw, 86px);
+  line-height: 0.93;
+  letter-spacing: -5px;
+  text-shadow:
+    0 0 28px rgba(203, 93, 255, 0.28),
+    0 12px 35px rgba(0, 0, 0, 0.54);
+}
+
+.bankruptcy-card > p {
+  position: relative;
+  z-index: 2;
+  max-width: 520px;
+  margin: 0 0 15px;
+  color: #a2a2ac;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.bankruptcy-video-frame {
+  position: relative;
+  z-index: 2;
+  width: min(340px, 76vw);
+  overflow: hidden;
+  border: 2px solid rgba(213, 119, 255, 0.55);
+  border-radius: 21px;
+  background: #000000;
+  box-shadow:
+    0 23px 58px rgba(0, 0, 0, 0.52),
+    0 0 32px rgba(184, 69, 232, 0.16);
+}
+
+.bankruptcy-video-frame::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.bankruptcy-video-frame video {
+  display: block;
+  width: 100%;
+  max-height: 58vh;
+  object-fit: contain;
+  background: #000000;
+}
+
+.bankruptcy-balance {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  margin-top: 14px;
+  padding: 10px 15px;
+  color: #ffb1c3;
+  border: 1px solid rgba(255, 84, 117, 0.34);
+  border-radius: 999px;
+  background: rgba(255, 67, 101, 0.08);
+  font-size: 11px;
+  letter-spacing: 0.7px;
+}
+
+.bankruptcy-close {
+  position: relative;
+  z-index: 2;
+  margin-top: 12px;
+  padding: 12px 17px;
+  color: #ffffff;
+  border: 1px solid #8737aa;
+  border-radius: 9px;
+  background: #532269;
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.bankruptcy-close.ready {
+  border-color: #c365ed;
+  background: linear-gradient(
+    135deg,
+    #8331b0,
+    #c259ea
+  );
+  box-shadow: 0 10px 25px rgba(164, 64, 211, 0.25);
+}
+
+.bankruptcy-close:hover {
+  transform: translateY(-2px);
+}
+
+.bankruptcy-card > small {
+  position: relative;
+  z-index: 2;
+  margin-top: 9px;
+  color: #656570;
+  font-size: 8px;
+}
+
+.bankruptcy-test-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  margin: 25px 0 18px;
+  padding: 17px 19px;
+  border: 1px dashed rgba(203, 104, 247, 0.44);
+  border-radius: 15px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(178, 64, 229, 0.085),
+      transparent 62%
+    ),
+    #141419;
+}
+
+.bankruptcy-test-panel span {
+  color: #d987ff;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+}
+
+.bankruptcy-test-panel h2 {
+  margin: 5px 0 4px;
+  font-size: 18px;
+}
+
+.bankruptcy-test-panel p {
+  margin: 0;
+  color: #777783;
+  font-size: 9px;
+}
+
+.bankruptcy-test-panel button {
+  flex-shrink: 0;
+  padding: 11px 14px;
+  color: #ffffff;
+  border: 1px solid #713187;
+  border-radius: 9px;
+  background: #3d194b;
+  font-size: 9px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.bankruptcy-test-panel button:hover {
+  border-color: #c35eed;
+  transform: translateY(-2px);
+}
+
+@keyframes bankruptcy-overlay-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes bankruptcy-card-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.55) translateY(45px);
+  }
+
+  62% {
+    opacity: 1;
+    transform: scale(1.045) translateY(0);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes bankruptcy-card-tremble {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-8px);
+  }
+
+  40% {
+    transform: translateX(7px);
+  }
+
+  60% {
+    transform: translateX(-4px);
+  }
+
+  80% {
+    transform: translateX(3px);
+  }
+}
+
+@keyframes bankruptcy-light-sweep {
+  from {
+    transform: translateX(-45%) rotate(-12deg);
+  }
+
+  to {
+    transform: translateX(55%) rotate(-12deg);
+  }
+}
+
+@media (max-width: 650px) {
+  .bankruptcy-overlay {
+    padding: 12px;
+  }
+
+  .bankruptcy-card {
+    width: 100%;
+    padding: 20px 13px 18px;
+    border-radius: 21px;
+  }
+
+  .bankruptcy-card h2 {
+    letter-spacing: -3px;
+  }
+
+  .bankruptcy-video-frame {
+    width: min(310px, 86vw);
+  }
+
+  .bankruptcy-test-panel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .bankruptcy-test-panel button {
+    width: 100%;
+  }
+}

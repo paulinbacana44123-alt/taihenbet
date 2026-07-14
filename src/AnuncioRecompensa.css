@@ -1,0 +1,288 @@
+/* ================================================================
+   ANÚNCIO RECOMPENSADO — +20 TAICOINS
+   ================================================================ */
+
+.reward-ad-overlay {
+  position: fixed;
+  z-index: 250000;
+  inset: 0;
+  display: grid;
+  overflow: auto;
+  place-items: center;
+  padding: 20px;
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(175, 70, 232, 0.2),
+      transparent 48%
+    ),
+    rgba(3, 3, 6, 0.96);
+  backdrop-filter: blur(14px);
+  animation: reward-ad-overlay-enter 0.35s both;
+}
+
+.reward-ad-card {
+  width: min(760px, 96vw);
+  padding: 20px;
+  border: 1px solid rgba(202, 104, 247, 0.5);
+  border-radius: 25px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.055),
+      transparent 35%
+    ),
+    #111015;
+  box-shadow:
+    0 35px 110px rgba(0, 0, 0, 0.68),
+    0 0 60px rgba(177, 67, 224, 0.15);
+  animation: reward-ad-card-enter 0.55s both;
+}
+
+.reward-ad-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.reward-ad-heading span {
+  color: #d98aff;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1.4px;
+}
+
+.reward-ad-heading h2 {
+  margin: 5px 0 0;
+  font-size: clamp(23px, 4vw, 38px);
+  letter-spacing: -1.5px;
+}
+
+.reward-ad-heading > strong {
+  display: grid;
+  min-width: 82px;
+  height: 48px;
+  place-items: center;
+  color: #ebc5ff;
+  border: 1px solid rgba(204, 108, 250, 0.42);
+  border-radius: 999px;
+  background: rgba(170, 64, 223, 0.12);
+  font-size: 16px;
+  box-shadow: 0 0 25px rgba(179, 69, 225, 0.14);
+}
+
+.reward-ad-video-frame {
+  overflow: hidden;
+  border: 2px solid rgba(200, 101, 247, 0.46);
+  border-radius: 17px;
+  background: #000000;
+  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.5);
+}
+
+.reward-ad-video-frame video {
+  display: block;
+  width: 100%;
+  max-height: 62vh;
+  object-fit: contain;
+  background: #000000;
+}
+
+.reward-ad-progress {
+  margin: 13px 0;
+}
+
+.reward-ad-progress > div {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #282830;
+}
+
+.reward-ad-progress > div > span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    #7c2bc3,
+    #ca5ff5,
+    #f3a3ff
+  );
+  box-shadow: 0 0 14px rgba(207, 94, 246, 0.42);
+  transition: width 0.18s linear;
+}
+
+.reward-ad-progress small {
+  display: block;
+  margin-top: 7px;
+  color: #777783;
+  font-size: 8px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.reward-ad-skip {
+  width: 100%;
+  padding: 13px;
+  color: #656570;
+  border: 1px solid #303038;
+  border-radius: 10px;
+  background: #1b1b21;
+  font-size: 10px;
+  font-weight: 900;
+  cursor: not-allowed;
+}
+
+.reward-ad-skip.ready {
+  color: #ffffff;
+  border-color: #ba58e7;
+  background: linear-gradient(
+    135deg,
+    #7e2db0,
+    #c258e8
+  );
+  cursor: pointer;
+  box-shadow: 0 11px 28px rgba(174, 64, 218, 0.24);
+  animation: reward-ad-ready-pulse 0.9s infinite alternate;
+}
+
+.reward-ad-skip.error {
+  color: #ffb4c0;
+  border-color: rgba(255, 79, 109, 0.4);
+  background: rgba(255, 72, 103, 0.09);
+  cursor: pointer;
+}
+
+.reward-ad-card > p {
+  margin: 10px 0 0;
+  color: #656570;
+  font-size: 8px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.reward-wallet {
+  min-width: 170px;
+}
+
+.wallet-ad-button {
+  margin-top: 5px;
+  padding: 5px 8px;
+  color: #ddb0f6;
+  border: 1px solid rgba(184, 82, 226, 0.34);
+  border-radius: 7px;
+  background: rgba(168, 61, 214, 0.08);
+  font-size: 7px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.18s;
+}
+
+.wallet-ad-button:hover {
+  color: #ffffff;
+  border-color: #c45eeb;
+  transform: translateY(-1px);
+}
+
+.bankruptcy-watch-ad {
+  position: relative;
+  z-index: 2;
+  margin-top: 8px;
+  padding: 11px 15px;
+  color: #ffffff;
+  border: 1px solid rgba(196, 94, 237, 0.55);
+  border-radius: 9px;
+  background: linear-gradient(
+    135deg,
+    #762b9d,
+    #b94ad8
+  );
+  font-size: 9px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 9px 24px rgba(157, 49, 196, 0.2);
+}
+
+.development-test-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@keyframes reward-ad-overlay-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes reward-ad-card-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.68) translateY(30px);
+  }
+
+  65% {
+    opacity: 1;
+    transform: scale(1.025) translateY(0);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes reward-ad-ready-pulse {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.008);
+  }
+}
+
+@media (max-width: 760px) {
+  .reward-ad-overlay {
+    padding: 10px;
+  }
+
+  .reward-ad-card {
+    padding: 13px;
+    border-radius: 18px;
+  }
+
+  .reward-ad-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .reward-ad-heading > strong {
+    min-width: 72px;
+    height: 40px;
+  }
+
+  .reward-wallet {
+    min-width: auto;
+  }
+
+  .wallet-ad-button {
+    display: none;
+  }
+
+  .development-test-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .development-test-actions button {
+    flex: 1;
+  }
+}

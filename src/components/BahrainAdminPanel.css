@@ -1,0 +1,333 @@
+/* ================================================================
+   PAINEL — LIGA DO BAHREIN
+   ================================================================ */
+
+.bahrain-admin {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 17px;
+  align-items: start;
+}
+
+.bahrain-admin-control,
+.bahrain-active-matches {
+  padding: 19px;
+  border: 1px solid #303039;
+  border-radius: 16px;
+  background: #131318;
+}
+
+.bahrain-admin-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.bahrain-admin-heading > div:first-child > span {
+  color: #cf76f4;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+}
+
+.bahrain-admin-heading h2 {
+  margin: 5px 0 4px;
+  font-size: 21px;
+}
+
+.bahrain-admin-heading p {
+  margin: 0;
+  color: #74747f;
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.bahrain-admin-heading > div:last-child {
+  display: flex;
+  min-width: 68px;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 10px;
+  border: 1px solid #3a3040;
+  border-radius: 9px;
+  background: #1b181f;
+}
+
+.bahrain-admin-heading small {
+  color: #80678b;
+  font-size: 6px;
+  font-weight: 900;
+}
+
+.bahrain-admin-heading > div:last-child strong {
+  color: #e3a5ff;
+  font-size: 18px;
+}
+
+.bahrain-round-buttons {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin-bottom: 13px;
+}
+
+.bahrain-round-buttons button {
+  padding: 9px 3px;
+  color: #8b7c91;
+  border: 1px solid #37323b;
+  border-radius: 7px;
+  background: #1a191e;
+  font-size: 8px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.bahrain-round-buttons button.active {
+  color: #ffffff;
+  border-color: #be59e8;
+  background: #7929a1;
+}
+
+.bahrain-preview {
+  display: grid;
+  gap: 7px;
+}
+
+.bahrain-preview article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 50px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 9px;
+  border: 1px solid #303038;
+  border-radius: 9px;
+  background: #19191f;
+}
+
+.bahrain-preview article > div {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+}
+
+.bahrain-preview article > div:last-child {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.bahrain-preview img {
+  width: 37px;
+  height: 37px;
+  flex-shrink: 0;
+  object-fit: contain;
+  padding: 3px;
+  border-radius: 7px;
+  background: #f5f3f5;
+}
+
+.bahrain-preview strong {
+  overflow: hidden;
+  font-size: 8px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.bahrain-preview > article > span {
+  color: #a17eae;
+  font-size: 7px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.bahrain-publish-button {
+  width: 100%;
+  min-height: 47px;
+  margin-top: 13px;
+  color: #ffffff;
+  border: 1px solid #c45ceb;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #792aa5, #bb4ddb);
+  font-size: 8px;
+  font-weight: 1000;
+  cursor: pointer;
+}
+
+.bahrain-admin-match-list {
+  display: grid;
+  gap: 9px;
+}
+
+.bahrain-admin-match-list > article {
+  overflow: hidden;
+  border: 1px solid #32323a;
+  border-radius: 11px;
+  background: #19191f;
+}
+
+.bahrain-admin-match-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  padding: 8px 10px;
+  border-bottom: 1px solid #2e2e36;
+}
+
+.bahrain-admin-match-top span,
+.bahrain-admin-match-top b {
+  font-size: 6px;
+  font-weight: 900;
+}
+
+.bahrain-admin-match-top span {
+  color: #82698e;
+}
+
+.bahrain-admin-match-top b {
+  color: #d07cf2;
+}
+
+.bahrain-admin-versus {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 25px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  padding: 10px;
+}
+
+.bahrain-admin-versus > div {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+}
+
+.bahrain-admin-versus > div:last-child {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.bahrain-admin-versus img {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  object-fit: contain;
+  padding: 4px;
+  border-radius: 8px;
+  background: #f5f3f5;
+}
+
+.bahrain-admin-versus strong {
+  overflow: hidden;
+  font-size: 8px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.bahrain-admin-versus > span {
+  color: #735f7c;
+  font-size: 12px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.bahrain-result-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  padding: 0 10px 10px;
+}
+
+.bahrain-result-buttons button {
+  display: grid;
+  grid-template-columns: 17px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 8px 6px;
+  color: #9c939f;
+  border: 1px solid #3b3440;
+  border-radius: 7px;
+  background: #211b24;
+  font-size: 6px;
+  cursor: pointer;
+}
+
+.bahrain-result-buttons span {
+  display: grid;
+  width: 17px;
+  height: 17px;
+  place-items: center;
+  color: #d891f7;
+  border-radius: 5px;
+  background: rgba(185, 78, 226, 0.12);
+  font-size: 7px;
+  font-weight: 900;
+}
+
+.bahrain-result-buttons strong {
+  color: #ffffff;
+  font-size: 7px;
+}
+
+.bahrain-admin-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 8px 10px;
+  border-top: 1px solid #2d2d35;
+}
+
+.bahrain-admin-actions button,
+.bahrain-admin-result button {
+  padding: 7px 9px;
+  color: #ae8fba;
+  border: 1px solid #47384e;
+  border-radius: 7px;
+  background: #211923;
+  font-size: 7px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.bahrain-admin-actions button:last-child,
+.bahrain-admin-result button {
+  color: #ff9db3;
+  border-color: rgba(255, 86, 119, 0.32);
+  background: rgba(255, 67, 101, 0.07);
+}
+
+.bahrain-admin-result {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 9px 10px;
+  color: #777782;
+  border-top: 1px solid #2e2e36;
+  font-size: 7px;
+}
+
+.bahrain-admin-result strong {
+  color: #abdeb9;
+}
+
+@media (max-width: 1000px) {
+  .bahrain-admin {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .bahrain-round-buttons {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .bahrain-result-buttons {
+    grid-template-columns: 1fr;
+  }
+}
