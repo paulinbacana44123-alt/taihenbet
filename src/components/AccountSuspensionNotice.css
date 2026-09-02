@@ -1,0 +1,70 @@
+.account-suspension-notice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  margin: 0 0 18px;
+  padding: 15px 17px;
+  border: 1px solid rgba(255, 84, 112, 0.34);
+  border-radius: 14px;
+  background:
+    linear-gradient(110deg, rgba(255, 65, 98, 0.12), transparent 55%),
+    #171116;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.18);
+}
+
+.account-suspension-symbol {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 92, 119, 0.45);
+  border-radius: 10px;
+  color: #ff8da2;
+  background: rgba(255, 75, 107, 0.12);
+  font-weight: 950;
+}
+
+.account-suspension-notice span,
+.account-suspension-notice strong,
+.account-suspension-notice p,
+.account-suspension-notice small {
+  display: block;
+}
+
+.account-suspension-notice span {
+  color: #ff8299;
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: 1.05px;
+}
+
+.account-suspension-notice strong {
+  margin-top: 4px;
+  color: #fff3ec;
+  font-size: 16px;
+}
+
+.account-suspension-notice p {
+  max-width: 780px;
+  margin: 5px 0 0;
+  color: #b89ca5;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.account-suspension-notice small {
+  margin-top: 8px;
+  color: #d9b6bd;
+  font-size: 10px;
+}
+
+.account-suspension-notice small b {
+  color: #ffb0be;
+}
+
+@media (max-width: 640px) {
+  .account-suspension-notice {
+    grid-template-columns: 1fr;
+  }
+}

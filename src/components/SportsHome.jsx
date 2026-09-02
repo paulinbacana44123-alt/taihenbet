@@ -1,5 +1,6 @@
 import './SportsHome.css'
 import entidadeBanca from '../assets/entidade-banca.png'
+import taihenModelo2026 from '../assets/taihen-modelo-2026.png'
 import museuCusto from '../assets/museu-custo.jpg'
 import museuListening from '../assets/museu-listening.png'
 import museuCalendario from '../assets/museu-calendario.png'
@@ -31,6 +32,8 @@ function SportsHome({
   onConfirmarAposta,
   onIrParaJogos,
   onIrParaMuseu,
+  onIrParaAoVivo,
+  sessaoAoVivo,
 }) {
   const partidas = eventos
     .filter(
@@ -56,21 +59,20 @@ function SportsHome({
         data-neytai-target="home-general"
       >
         <div className="sports-hero-copy">
-          <span className="sports-eyebrow">
-            CENTRAL GERAL DA TAIHENBET
+          <span className="sports-eyebrow new-era-eyebrow">
+            TAIHENBET 2.0 · NOVA ERA
           </span>
 
           <h1>
             Toda a maluquice
             <br />
-            <b>em um único site.</b>
+            <b>sob nova administração.</b>
           </h1>
 
           <p>
-            Apostas esportivas fictícias, minijogos absurdos,
-            corridas manipuladas pela Mambo, anúncios em troca de
-            TaiCoins e nenhuma intenção de parecer uma plataforma
-            séria.
+            Apostas fictícias, minijogos questionáveis, uma liga
+            inteira do Bahrein e absolutamente nenhum dinheiro real.
+            A Taihen mudou de modelo. A banca, infelizmente, também.
           </p>
 
           <div className="sports-hero-actions">
@@ -79,7 +81,7 @@ function SportsHome({
               className="general-primary-action"
               onClick={onIrParaJogos}
             >
-              Explorar jogos da entidade
+              Jogar agora
             </button>
 
             <a
@@ -96,7 +98,7 @@ function SportsHome({
               <div>
                 <strong>Jogos da Entidade</strong>
                 <small>
-                  TaiMandioca, Taigrinho, Crash e Taihen Derby.
+                  TaiMandioca, Taigrinho, Crash e Derby.
                 </small>
               </div>
             </article>
@@ -104,9 +106,9 @@ function SportsHome({
             <article>
               <span>02</span>
               <div>
-                <strong>Apostas esportivas</strong>
+                <strong>Sessões ao vivo</strong>
                 <small>
-                  Uma liga inteira do Bahrein controlada pelo painel.
+                  Mercados publicados pela banca durante a live.
                 </small>
               </div>
             </article>
@@ -114,69 +116,89 @@ function SportsHome({
             <article>
               <span>03</span>
               <div>
-                <strong>Comunidade fictícia</strong>
+                <strong>Acervo histórico</strong>
                 <small>
-                  Ranking, histórico, sessão ao vivo e TaiCoins sem valor.
+                  O Museu preserva as eras antigas da Taihen.
                 </small>
               </div>
             </article>
           </div>
         </div>
 
-        <aside className="general-home-overview">
-          <div className="sports-oracle-badge general-oracle-badge">
-            <img
-              src={entidadeBanca}
-              alt="Entidade da banca"
-            />
+        <aside className="general-home-showcase">
+          <div className="new-era-chip">
+            <span>NOVA ERA</span>
+            <strong>MODELO 2026</strong>
+          </div>
 
+          <div className="general-model-glow" aria-hidden="true" />
+
+          <img
+            className="general-model-image"
+            src={taihenModelo2026}
+            alt="Novo modelo da Taihen"
+          />
+
+          <div className="general-model-caption">
+            <small>ENTIDADE RESPONSÁVEL</small>
+            <strong>Administrando o caos</strong>
             <span>
-              <small>ENTIDADE RESPONSÁVEL</small>
-              <strong>Administrando o caos</strong>
+              Rosa, dourado, mandioca e decisões financeiras fictícias.
             </span>
           </div>
-
-          <div className="general-home-stats">
-            <div>
-              <strong>4</strong>
-              <span>minijogos</span>
-            </div>
-
-            <div>
-              <strong>8</strong>
-              <span>times</span>
-            </div>
-
-            <div>
-              <strong>0</strong>
-              <span>dinheiro real</span>
-            </div>
-          </div>
-
-          <div className="general-league-preview">
-            <div>
-              <span>EM DESTAQUE AGORA</span>
-              <strong>
-                Liga do Bahrein · Rodada {rodada}
-              </strong>
-              <small>
-                Quatro partidas esportivas disponíveis nesta rodada.
-              </small>
-            </div>
-
-            <div className="general-crest-strip">
-              {timesBahrein.map((time) => (
-                <div key={time.id} title={time.nome}>
-                  <img src={time.logo} alt={time.nome} />
-                </div>
-              ))}
-            </div>
-
-            <a href="#rodada-bahrein">
-              Conferir confrontos
-            </a>
-          </div>
         </aside>
+      </div>
+
+      <div
+        className={`home-live-strip ${
+          sessaoAoVivo?.ativa ? 'is-live' : 'is-offline'
+        }`}
+      >
+        <div className="home-live-status">
+          <span className="home-live-dot" aria-hidden="true" />
+
+          <div>
+            <small>
+              {sessaoAoVivo?.ativa
+                ? 'AO VIVO AGORA'
+                : 'BANCA OFFLINE'}
+            </small>
+
+            <strong>
+              {sessaoAoVivo?.ativa
+                ? sessaoAoVivo.titulo || 'Sessão ao vivo da TaihenBet'
+                : 'A entidade ainda não iniciou os trabalhos.'}
+            </strong>
+          </div>
+        </div>
+
+        <button type="button" onClick={onIrParaAoVivo}>
+          {sessaoAoVivo?.ativa
+            ? 'Entrar na sessão'
+            : 'Ver área ao vivo'}
+        </button>
+      </div>
+
+      <div className="general-home-stats-row">
+        <article>
+          <strong>4</strong>
+          <span>jogos questionáveis</span>
+        </article>
+
+        <article>
+          <strong>8</strong>
+          <span>clubes aleatórios</span>
+        </article>
+
+        <article>
+          <strong>0 R$</strong>
+          <span>dinheiro movimentado</span>
+        </article>
+
+        <article className="infinite-stat">
+          <strong>∞</strong>
+          <span>decisões ruins</span>
+        </article>
       </div>
 
       <div className="sports-warning">
@@ -219,7 +241,7 @@ function SportsHome({
               alt="O custo de estar ali"
             />
             <span>
-              <small>MEME DA COMUNIDADE</small>
+              <small>ERA I · MEME DA COMUNIDADE</small>
               <strong>O custo de estar ali</strong>
             </span>
           </button>
@@ -233,7 +255,7 @@ function SportsHome({
               alt="Taihen is listening"
             />
             <span>
-              <small>COMUNICADO OFICIAL</small>
+              <small>ERA I · COMUNICADO HISTÓRICO</small>
               <strong>Taihen is listening</strong>
             </span>
           </button>
@@ -247,7 +269,7 @@ function SportsHome({
               alt="Calendário trabalhista da Tai"
             />
             <span>
-              <small>DOCUMENTO HISTÓRICO</small>
+              <small>ERA I · DOCUMENTO HISTÓRICO</small>
               <strong>Calendário trabalhista</strong>
             </span>
           </button>
@@ -265,8 +287,9 @@ function SportsHome({
               <span>APOSTAS ESPORTIVAS · LIGA DO BAHREIN</span>
               <h2>Partidas da rodada {rodada}</h2>
               <p>
-                Os confrontos alternam pelo calendário de sete
-                rodadas controlado no Painel.
+                Os confrontos alternam pelo calendário de sete rodadas.
+                Bilhetes, odds travadas e pagamentos agora são liquidados
+                pelo servidor da banca.
               </p>
             </div>
 
@@ -407,7 +430,7 @@ function SportsHome({
         >
           <div className="sports-betslip-heading">
             <div>
-              <span>BILHETE ESPORTIVO</span>
+              <span>BILHETE ESPORTIVO · SERVIDOR</span>
               <h2>Suas seleções</h2>
             </div>
 
@@ -524,8 +547,8 @@ function SportsHome({
           </button>
 
           <p className="sports-betslip-disclaimer">
-            Apostas exclusivamente fictícias. Nenhum resultado
-            gera dinheiro ou prêmio real.
+            Apostas exclusivamente fictícias. O navegador só envia as
+            seleções; o servidor valida odds, saldo e liquidação.
           </p>
         </aside>
       </div>

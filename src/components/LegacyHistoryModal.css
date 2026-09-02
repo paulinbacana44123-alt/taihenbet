@@ -1,0 +1,129 @@
+.legacy-history-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 165;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(5, 3, 5, 0.86);
+  backdrop-filter: blur(14px);
+}
+
+.legacy-history-modal {
+  width: min(650px, 96vw);
+  padding: 36px;
+  text-align: center;
+  border: 1px solid rgba(208, 160, 82, 0.34);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(208, 160, 82, 0.12), transparent 35%),
+    linear-gradient(160deg, #211419, #120c10 58%, #0d090c);
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.62);
+}
+
+.legacy-history-seal {
+  display: grid;
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 20px;
+  place-items: center;
+  color: #f2d7a5;
+  border: 1px solid rgba(208, 160, 82, 0.55);
+  border-radius: 50%;
+  background: rgba(208, 160, 82, 0.08);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.legacy-history-kicker {
+  color: #d0a052;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+}
+
+.legacy-history-modal h2 {
+  margin: 10px auto 12px;
+  max-width: 540px;
+  color: #fff4ef;
+  font-size: 31px;
+  line-height: 1.05;
+  letter-spacing: -1px;
+}
+
+.legacy-history-modal > p {
+  max-width: 540px;
+  margin: 0 auto;
+  color: #ae969f;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.legacy-history-modal > p strong { color: #f2d7a5; }
+
+.legacy-history-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 24px 0;
+}
+
+.legacy-history-stats article {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid rgba(232, 95, 125, 0.16);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.legacy-history-stats span {
+  color: #8f7b86;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.legacy-history-stats strong {
+  color: #fff4ef;
+  font-size: 24px;
+}
+
+.legacy-history-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.legacy-history-actions button {
+  padding: 14px;
+  color: #d6c4cb;
+  border: 1px solid #3b2931;
+  border-radius: 10px;
+  background: #171014;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.legacy-history-actions button.primary {
+  color: #fff;
+  border-color: rgba(246, 162, 179, 0.38);
+  background: linear-gradient(135deg, #b93b50, #e85f7d);
+}
+
+.legacy-history-actions button:disabled { opacity: 0.55; cursor: wait; }
+
+.legacy-history-modal > small {
+  display: block;
+  margin-top: 15px;
+  color: #6f5f66;
+  font-size: 9px;
+}
+
+@media (max-width: 600px) {
+  .legacy-history-modal { padding: 28px 20px; }
+  .legacy-history-stats,
+  .legacy-history-actions { grid-template-columns: 1fr; }
+}

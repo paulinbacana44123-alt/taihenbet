@@ -450,3 +450,368 @@
     align-items: flex-start;
   }
 }
+
+/* ================================================================
+   PHASE 3.11 — PARA A TAI COMO MURAL DA COMUNIDADE
+   ================================================================ */
+
+.tai-community-page {
+  min-height: calc(100vh - 120px);
+}
+
+.tai-community-hero {
+  display: grid;
+  width: min(1180px, 100%);
+  grid-template-columns: 150px minmax(0, 1fr);
+  align-items: center;
+  gap: 22px;
+  margin: 0 auto;
+  padding: 24px;
+  border: 1px solid rgba(232, 95, 125, 0.2);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 13% 10%, rgba(232, 95, 125, 0.13), transparent 36%),
+    linear-gradient(145deg, #1a1116, #111014 72%);
+  box-shadow: 0 28px 82px rgba(0, 0, 0, 0.32);
+}
+
+.tai-community-portrait {
+  width: 150px;
+  height: 150px;
+  overflow: hidden;
+  border: 1px solid rgba(242, 215, 165, 0.32);
+  border-radius: 20px;
+  background: #0c0b0f;
+}
+
+.tai-community-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tai-community-hero h1 {
+  margin: 7px 0 8px;
+  color: #fffaf6;
+  font-size: clamp(48px, 8vw, 86px);
+  line-height: 0.9;
+  letter-spacing: -5px;
+}
+
+.tai-community-hero p {
+  max-width: 760px;
+  margin: 0;
+  color: #a7939a;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.tai-community-layout {
+  display: grid;
+  width: min(1180px, 100%);
+  grid-template-columns: minmax(300px, 0.72fr) minmax(0, 1.28fr);
+  align-items: start;
+  gap: 18px;
+  margin: 0 auto;
+}
+
+.tai-message-composer-card,
+.tai-message-wall {
+  border: 1px solid #37282f;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(232, 95, 125, 0.055), rgba(208, 143, 75, 0.018)),
+    #151014;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.25);
+}
+
+.tai-message-composer-card {
+  position: sticky;
+  top: 92px;
+  padding: 22px;
+}
+
+.tai-message-composer-card > span,
+.tai-message-wall-heading span,
+.tai-community-message-top span {
+  color: #f6a2b3;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.tai-message-composer-card h2,
+.tai-message-wall-heading h2 {
+  margin: 5px 0 10px;
+  color: #fff8f4;
+  font-size: 28px;
+}
+
+.tai-message-composer-card form {
+  display: grid;
+  gap: 10px;
+}
+
+.tai-writing-as {
+  color: #917e85;
+  font-size: 9px;
+}
+
+.tai-writing-as strong {
+  color: #f5c2cb;
+}
+
+.tai-message-composer-card textarea {
+  min-height: 190px;
+  padding: 14px;
+  color: #f6edf0;
+  border: 1px solid #443138;
+  border-radius: 12px;
+  outline: none;
+  background: #100c0f;
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.65;
+  resize: vertical;
+}
+
+.tai-message-composer-card textarea:focus {
+  border-color: #e85f7d;
+  box-shadow: 0 0 0 3px rgba(232, 95, 125, 0.1);
+}
+
+.tai-message-counter {
+  color: #75646b;
+  font-size: 8px;
+  text-align: right;
+}
+
+.tai-message-composer-card form > button,
+.tai-login-required button {
+  padding: 12px 14px;
+  color: #fffaf7;
+  border: 1px solid rgba(232, 95, 125, 0.42);
+  border-radius: 10px;
+  background: linear-gradient(135deg, #9e3348, #e85f7d 64%, #d08f4b 122%);
+  font-size: 9px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.tai-message-composer-card form > button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.tai-message-error,
+.tai-message-success {
+  margin: 0;
+  padding: 9px 10px;
+  border-radius: 9px;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.tai-message-error {
+  color: #ff9cad;
+  border: 1px solid rgba(255, 87, 114, 0.26);
+  background: rgba(112, 21, 39, 0.16);
+}
+
+.tai-message-success {
+  color: #9df4be;
+  border: 1px solid rgba(75, 220, 130, 0.24);
+  background: rgba(35, 104, 61, 0.16);
+}
+
+.tai-community-rules,
+.tai-login-required {
+  margin-top: 14px;
+  padding: 13px;
+  border: 1px solid #34272d;
+  border-radius: 11px;
+  background: #110d10;
+}
+
+.tai-community-rules strong {
+  color: #f1c9d1;
+  font-size: 9px;
+}
+
+.tai-community-rules p,
+.tai-login-required p {
+  margin: 5px 0 0;
+  color: #88767d;
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.tai-login-required button {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.tai-back-home {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  color: #cbb9bf;
+  border: 1px solid #3b2d32;
+  border-radius: 9px;
+  background: #1a1417;
+  font-size: 8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.tai-message-wall {
+  min-width: 0;
+  padding: 20px;
+}
+
+.tai-message-wall-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #30242a;
+}
+
+.tai-message-wall-heading h2 {
+  margin-bottom: 4px;
+}
+
+.tai-message-wall-heading p {
+  margin: 0;
+  color: #7e6d73;
+  font-size: 8px;
+}
+
+.tai-message-wall-heading > button {
+  flex: 0 0 auto;
+  padding: 9px 11px;
+  color: #f1c5cd;
+  border: 1px solid rgba(232, 95, 125, 0.24);
+  border-radius: 9px;
+  background: rgba(232, 95, 125, 0.06);
+  font-size: 8px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.tai-message-list {
+  display: grid;
+  gap: 11px;
+  margin-top: 15px;
+}
+
+.tai-community-message {
+  padding: 16px;
+  border: 1px solid #34282d;
+  border-radius: 13px;
+  background:
+    linear-gradient(135deg, rgba(232, 95, 125, 0.045), transparent 55%),
+    #110e10;
+}
+
+.tai-community-message-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.tai-community-message-top > div {
+  display: grid;
+  gap: 3px;
+}
+
+.tai-community-message-top strong {
+  color: #f8d9df;
+  font-size: 12px;
+}
+
+.tai-community-message-top time {
+  color: #74646a;
+  font-size: 7px;
+}
+
+.tai-community-message > p {
+  margin: 14px 0 0;
+  color: #c1afb5;
+  font-size: 10px;
+  line-height: 1.72;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.tai-community-message > button {
+  margin-top: 13px;
+  padding: 8px 10px;
+  color: #ff98aa;
+  border: 1px solid rgba(255, 91, 117, 0.28);
+  border-radius: 8px;
+  background: rgba(111, 22, 40, 0.14);
+  font-size: 7px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.tai-message-empty {
+  margin-top: 15px;
+  padding: 26px;
+  color: #88767d;
+  border: 1px dashed #3b2d33;
+  border-radius: 12px;
+  background: #100d0f;
+  font-size: 9px;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .tai-community-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .tai-message-composer-card {
+    position: static;
+  }
+}
+
+@media (max-width: 650px) {
+  .tai-community-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .tai-community-portrait {
+    width: 110px;
+    height: 110px;
+  }
+
+  .tai-message-wall-heading,
+  .tai-community-message-top {
+    flex-direction: column;
+  }
+}
+
+
+/* Fase 3.16 — autor abre a ficha pública */
+.tai-message-author-link {
+  display: block;
+  width: fit-content;
+  margin-top: 2px;
+  padding: 0;
+  color: #fff2f6;
+  border: 0;
+  border-bottom: 1px dashed rgba(255, 103, 157, 0.38);
+  background: transparent;
+  font: inherit;
+  font-weight: 900;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tai-message-author-link:hover {
+  color: #ff71a6;
+}

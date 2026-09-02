@@ -1,0 +1,577 @@
+.moderation-admin-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.moderation-admin-hero,
+.moderation-section,
+.moderation-stats article {
+  border: 1px solid #3a2930;
+  background:
+    linear-gradient(120deg, rgba(222, 66, 99, 0.055), transparent 45%),
+    #171217;
+}
+
+.moderation-admin-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  padding: 22px;
+  border-radius: 16px;
+}
+
+.moderation-admin-hero > div > span,
+.moderation-toolbar span,
+.moderation-stats span,
+.moderation-user-card small,
+.moderation-content-copy > span,
+.moderation-message-head span {
+  color: #ef86a0;
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: 1px;
+}
+
+.moderation-admin-hero h2 {
+  margin: 6px 0 7px;
+  color: #fff4ed;
+  font-size: 24px;
+}
+
+.moderation-admin-hero p {
+  max-width: 720px;
+  margin: 0;
+  color: #a88e97;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.moderation-refresh,
+.moderation-tabs button,
+.moderation-reactivate,
+.moderation-remove,
+.moderation-suspend-controls button {
+  border: 1px solid #51323e;
+  color: #ffe6df;
+  background: #25171e;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.moderation-refresh {
+  flex: 0 0 auto;
+  padding: 10px 13px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.moderation-refresh:hover:not(:disabled),
+.moderation-tabs button:hover,
+.moderation-suspend-controls button:hover:not(:disabled),
+.moderation-remove:hover:not(:disabled) {
+  border-color: #db496d;
+  background: #321923;
+}
+
+.moderation-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.moderation-stats article {
+  padding: 16px;
+  border-radius: 13px;
+}
+
+.moderation-stats strong,
+.moderation-stats small {
+  display: block;
+}
+
+.moderation-stats strong {
+  margin-top: 6px;
+  color: #ffd47f;
+  font-size: 22px;
+}
+
+.moderation-stats small {
+  margin-top: 3px;
+  color: #88737b;
+  font-size: 9px;
+}
+
+.moderation-feedback {
+  padding: 11px 13px;
+  border-radius: 10px;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.moderation-feedback.error {
+  color: #ff8ca2;
+  border: 1px solid rgba(255, 79, 111, 0.35);
+  background: rgba(255, 79, 111, 0.08);
+}
+
+.moderation-feedback.success {
+  color: #74efaa;
+  border: 1px solid rgba(49, 207, 121, 0.3);
+  background: rgba(49, 207, 121, 0.08);
+}
+
+.moderation-tabs {
+  display: flex;
+  gap: 7px;
+  padding: 7px;
+  overflow-x: auto;
+  border: 1px solid #33242a;
+  border-radius: 13px;
+  background: #120e12;
+}
+
+.moderation-tabs button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.moderation-tabs button span {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 8px;
+}
+
+.moderation-tabs button.active {
+  border-color: #d64d6d;
+  background: linear-gradient(110deg, #68293b, #311922);
+  box-shadow: 0 0 24px rgba(220, 71, 106, 0.09);
+}
+
+.moderation-section {
+  padding: 19px;
+  border-radius: 16px;
+}
+
+.moderation-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.moderation-toolbar h3 {
+  margin: 4px 0 0;
+  color: #fff3ed;
+  font-size: 19px;
+}
+
+.moderation-toolbar input,
+.moderation-suspend-controls input {
+  border: 1px solid #46323a;
+  outline: none;
+  color: #f8e9e4;
+  background: #100d10;
+}
+
+.moderation-toolbar input {
+  width: min(390px, 100%);
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 10px;
+}
+
+.moderation-toolbar input:focus,
+.moderation-suspend-controls input:focus {
+  border-color: #dd5273;
+  box-shadow: 0 0 0 3px rgba(221, 82, 115, 0.08);
+}
+
+.moderation-user-list,
+.moderation-content-list,
+.moderation-message-list,
+.moderation-log-list {
+  display: grid;
+  gap: 10px;
+}
+
+.moderation-user-card,
+.moderation-content-card,
+.moderation-message-card,
+.moderation-log-card {
+  border: 1px solid #382b31;
+  border-radius: 12px;
+  background: #130f13;
+}
+
+.moderation-user-card {
+  padding: 14px;
+}
+
+.moderation-user-card.suspended {
+  border-color: rgba(255, 80, 113, 0.34);
+  background:
+    linear-gradient(100deg, rgba(255, 65, 98, 0.07), transparent 42%),
+    #140f13;
+}
+
+.moderation-user-main {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.moderation-user-main > img {
+  width: 44px;
+  height: 44px;
+  border: 1px solid #53333f;
+  border-radius: 11px;
+  object-fit: cover;
+  background: #24181d;
+}
+
+.moderation-user-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+
+.moderation-user-title strong {
+  color: #fff4ef;
+  font-size: 13px;
+}
+
+.moderation-user-status,
+.moderation-self {
+  padding: 4px 7px;
+  border-radius: 999px;
+  font-size: 7px;
+  font-weight: 950;
+  letter-spacing: 0.6px;
+}
+
+.moderation-user-status.on {
+  color: #62ed9c;
+  border: 1px solid rgba(46, 207, 116, 0.3);
+  background: rgba(46, 207, 116, 0.07);
+}
+
+.moderation-user-status.off {
+  color: #ff829b;
+  border: 1px solid rgba(255, 74, 108, 0.34);
+  background: rgba(255, 74, 108, 0.08);
+}
+
+.moderation-self {
+  color: #ffd987;
+  border: 1px solid rgba(231, 172, 68, 0.3);
+  background: rgba(231, 172, 68, 0.07);
+}
+
+.moderation-user-main small {
+  margin-top: 4px;
+  color: #8e737c;
+  letter-spacing: 0.3px;
+}
+
+.moderation-suspend-controls,
+.moderation-suspension-box {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #2b2226;
+}
+
+.moderation-suspend-controls input {
+  padding: 10px 11px;
+  border-radius: 9px;
+  font-size: 10px;
+}
+
+.moderation-suspend-controls button,
+.moderation-reactivate {
+  padding: 9px 12px;
+  border-radius: 9px;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.moderation-suspend-controls button {
+  color: #ff8ba0;
+  border-color: rgba(255, 70, 105, 0.34);
+}
+
+.moderation-reactivate {
+  align-self: center;
+  color: #72eeaa;
+  border-color: rgba(59, 210, 127, 0.3);
+  background: rgba(39, 113, 73, 0.12);
+}
+
+.moderation-suspension-box span {
+  color: #ff8299;
+  font-size: 8px;
+  font-weight: 950;
+  letter-spacing: 0.8px;
+}
+
+.moderation-suspension-box p {
+  margin: 5px 0 3px;
+  color: #d0b3bb;
+  font-size: 10px;
+}
+
+.moderation-suspension-box small {
+  color: #735f66;
+  font-size: 8px;
+}
+
+.moderation-protected {
+  margin-top: 12px;
+  padding: 9px 10px;
+  border: 1px dashed #634a36;
+  border-radius: 9px;
+  color: #d4b57c;
+  background: rgba(198, 144, 54, 0.05);
+  font-size: 9px;
+}
+
+.moderation-content-card {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) auto;
+  gap: 13px;
+  align-items: center;
+  padding: 11px;
+}
+
+.moderation-media-preview {
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 82px;
+  overflow: hidden;
+  border: 1px solid #3b3035;
+  border-radius: 9px;
+  background: #080708;
+}
+
+.moderation-media-preview img,
+.moderation-media-preview video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.moderation-content-copy h4 {
+  margin: 4px 0 3px;
+  color: #fff2ec;
+  font-size: 13px;
+}
+
+.moderation-content-copy strong {
+  color: #f18ba2;
+  font-size: 9px;
+}
+
+.moderation-content-copy p {
+  margin: 6px 0 0;
+  color: #8d747d;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.moderation-remove {
+  padding: 9px 11px;
+  border-radius: 9px;
+  color: #ff829a;
+  border-color: rgba(255, 76, 110, 0.32);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.moderation-message-card {
+  padding: 14px;
+}
+
+.moderation-message-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.moderation-message-head strong {
+  display: block;
+  margin-top: 3px;
+  color: #fff1eb;
+  font-size: 12px;
+}
+
+.moderation-message-head small {
+  color: #715f65;
+  font-size: 8px;
+}
+
+.moderation-message-card > p {
+  margin: 12px 0;
+  color: #c2a8b0;
+  font-size: 10px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.log-toolbar {
+  align-items: center;
+}
+
+.log-toolbar > small {
+  color: #806b72;
+  font-size: 9px;
+}
+
+.moderation-log-card {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) auto;
+  gap: 13px;
+  align-items: center;
+  padding: 11px 13px;
+}
+
+.moderation-log-action {
+  justify-self: start;
+  padding: 6px 8px;
+  border: 1px solid #4d3540;
+  border-radius: 8px;
+  color: #ee91a5;
+  background: #21151b;
+  font-size: 8px;
+  font-weight: 950;
+  letter-spacing: 0.5px;
+}
+
+.moderation-log-action.action-user_reactivated {
+  color: #6deaa4;
+  border-color: rgba(53, 200, 118, 0.3);
+  background: rgba(53, 200, 118, 0.06);
+}
+
+.moderation-log-card strong {
+  color: #f6e8e3;
+  font-size: 10px;
+}
+
+.moderation-log-card p,
+.moderation-log-card small {
+  margin: 3px 0 0;
+  color: #886f77;
+  font-size: 8px;
+}
+
+.moderation-log-card time {
+  color: #6d5b61;
+  font-size: 8px;
+  text-align: right;
+}
+
+.moderation-empty {
+  padding: 26px;
+  border: 1px dashed #3b2d33;
+  border-radius: 12px;
+  color: #816b73;
+  text-align: center;
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.moderation-admin-panel button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+@media (max-width: 980px) {
+  .moderation-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .moderation-content-card {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+
+  .moderation-content-card > .moderation-remove {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .moderation-media-preview {
+    width: 96px;
+    height: 72px;
+  }
+}
+
+@media (max-width: 680px) {
+  .moderation-admin-hero,
+  .moderation-toolbar,
+  .moderation-message-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .moderation-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .moderation-toolbar input {
+    width: 100%;
+  }
+
+  .moderation-suspend-controls,
+  .moderation-suspension-box,
+  .moderation-content-card,
+  .moderation-log-card {
+    grid-template-columns: 1fr;
+  }
+
+  .moderation-media-preview {
+    width: 100%;
+    height: 180px;
+  }
+
+  .moderation-log-card time {
+    text-align: left;
+  }
+}
+
+/* Fase 3.21 — comentários do Museu */
+.moderation-comment-card {
+  gap: 10px;
+}
+
+.moderation-comment-post {
+  display: block;
+  color: #d98aa6;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+}
+
+@media (min-width: 1180px) {
+  .moderation-stats {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}

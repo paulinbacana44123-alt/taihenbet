@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import './LiveAdmin.css'
 import BahrainAdminPanel from './BahrainAdminPanel'
 import AnimationArchivePanel from './AnimationArchivePanel'
+import WalletAdminPanel from './WalletAdminPanel'
+import ModerationAdminPanel from './ModerationAdminPanel'
+import ContentAdminPanel from './ContentAdminPanel'
 
 function gerarId() {
   return crypto.randomUUID()
@@ -291,7 +294,7 @@ function AdminPanel({
   }
 
   return (
-    <section className="admin-page">
+    <section className="admin-page" data-neytai-target="admin-page">
       <div className="admin-header">
         <div>
           <span className="admin-eyebrow">
@@ -347,6 +350,34 @@ function AdminPanel({
         >
           Sessão ao vivo
           <span>{sessaoAoVivo?.ativa ? '●' : '0'}</span>
+        </button>
+
+        <button
+          type="button"
+          className={aba === 'carteiras' ? 'active' : ''}
+          onClick={() => setAba('carteiras')}
+        >
+          Carteiras
+          <span>T</span>
+        </button>
+
+        <button
+          type="button"
+          data-neytai-target="admin-moderation-tab"
+          className={aba === 'moderacao' ? 'active' : ''}
+          onClick={() => setAba('moderacao')}
+        >
+          Moderação
+          <span>!</span>
+        </button>
+
+        <button
+          type="button"
+          className={aba === 'conteudo' ? 'active' : ''}
+          onClick={() => setAba('conteudo')}
+        >
+          Conteúdo do site
+          <span>✎</span>
         </button>
 
         <button
@@ -758,6 +789,9 @@ function AdminPanel({
                       </span>
 
                       <h2>{aposta.data}</h2>
+                      {aposta.clienteNome && (
+                        <small>Cliente: {aposta.clienteNome}</small>
+                      )}
                     </div>
 
                     <span
@@ -870,6 +904,12 @@ function AdminPanel({
             </div>
           )}
         </>
+      ) : aba === 'carteiras' ? (
+        <WalletAdminPanel />
+      ) : aba === 'moderacao' ? (
+        <ModerationAdminPanel />
+      ) : aba === 'conteudo' ? (
+        <ContentAdminPanel />
       ) : aba === 'animacoes' ? (
         <AnimationArchivePanel />
       ) : (

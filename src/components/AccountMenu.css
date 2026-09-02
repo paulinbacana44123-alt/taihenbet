@@ -1,0 +1,322 @@
+.auth-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+}
+
+.auth-header-actions button {
+  padding: 9px 12px;
+  color: #c8b8c0;
+  border: 1px solid #39242e;
+  border-radius: 9px;
+  background: #151014;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.auth-header-actions button:hover {
+  color: #fff4ef;
+  border-color: rgba(232, 95, 125, 0.55);
+}
+
+.auth-header-actions button.primary {
+  color: #fff;
+  border-color: rgba(246, 162, 179, 0.32);
+  background: linear-gradient(135deg, #b93b50, #e85f7d);
+  box-shadow: 0 8px 20px rgba(185, 59, 80, 0.15);
+}
+
+.auth-header-loading {
+  width: 108px;
+  height: 37px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #171014, #281820, #171014);
+  background-size: 200% 100%;
+  animation: auth-loading 1.2s linear infinite;
+}
+
+@keyframes auth-loading {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.account-menu {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.account-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 6px;
+  color: #fff4ef;
+  border: 1px solid #35232c;
+  border-radius: 11px;
+  background: #151014;
+  cursor: pointer;
+  transition: 0.18s;
+}
+
+.account-trigger:hover {
+  border-color: rgba(232, 95, 125, 0.46);
+  background: #1c1217;
+}
+
+.account-avatar {
+  display: grid;
+  width: 31px;
+  height: 31px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #24120e;
+  border: 1px solid rgba(255, 234, 188, 0.55);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #f2d7a5, #d0a052);
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: 0 0 14px rgba(208, 160, 82, 0.14);
+}
+
+.account-avatar.large {
+  width: 40px;
+  height: 40px;
+  font-size: 15px;
+}
+
+.account-copy {
+  display: grid;
+  min-width: 76px;
+  text-align: left;
+}
+
+.account-copy small {
+  color: #74666d;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.45px;
+}
+
+.account-copy strong {
+  max-width: 105px;
+  overflow: hidden;
+  color: #f7e5dc;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-chevron {
+  color: #806f77;
+  font-size: 13px;
+}
+
+.account-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 40;
+  width: 265px;
+  padding: 13px;
+  border: 1px solid rgba(232, 95, 125, 0.24);
+  border-radius: 14px;
+  background: rgba(18, 13, 16, 0.98);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.48);
+  backdrop-filter: blur(18px);
+}
+
+.account-dropdown-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 3px 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.account-dropdown-head > div {
+  display: grid;
+  min-width: 0;
+}
+
+.account-dropdown-head strong,
+.account-dropdown-head small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-dropdown-head strong {
+  color: #fff4ef;
+  font-size: 13px;
+}
+
+.account-dropdown-head small {
+  margin-top: 2px;
+  color: #81727a;
+  font-size: 10px;
+}
+
+.account-online-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 12px 0;
+  padding: 8px 9px;
+  color: #bca9b2;
+  border-radius: 8px;
+  background: rgba(232, 95, 125, 0.055);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.account-online-badge i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #49c774;
+  box-shadow: 0 0 10px rgba(73, 199, 116, 0.45);
+}
+
+.account-signout {
+  width: 100%;
+  padding: 9px 10px;
+  color: #e8a0ab;
+  border: 1px solid rgba(217, 91, 106, 0.2);
+  border-radius: 8px;
+  background: rgba(217, 91, 106, 0.06);
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.account-signout:hover:not(:disabled) {
+  color: #ffc0c8;
+  border-color: rgba(217, 91, 106, 0.42);
+  background: rgba(217, 91, 106, 0.11);
+}
+
+@media (max-width: 650px) {
+  .auth-header-actions button:not(.primary) {
+    display: none;
+  }
+
+  .auth-header-actions button.primary {
+    padding: 8px 10px;
+    font-size: 10px;
+  }
+
+  .account-copy,
+  .account-chevron {
+    display: none;
+  }
+
+  .account-trigger {
+    padding: 4px;
+    border-radius: 50%;
+  }
+}
+
+.header-account-zone {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 1180px) {
+  .header-account-zone .wallet-ad-button {
+    display: none;
+  }
+}
+
+@media (max-width: 650px) {
+  .header-account-zone {
+    gap: 8px;
+  }
+}
+
+.account-avatar.image-avatar {
+  overflow: hidden;
+  padding: 0;
+  background: #211419;
+}
+
+.account-avatar.image-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 24%;
+}
+
+.account-wallet-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 11px;
+  padding: 9px 10px;
+  border: 1px solid rgba(208, 160, 82, 0.18);
+  border-radius: 8px;
+  background: rgba(208, 160, 82, 0.055);
+}
+
+.account-wallet-row span {
+  color: #927f87;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.account-wallet-row strong {
+  color: #f2d7a5;
+  font-size: 12px;
+}
+
+.account-profile-button {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 9px 10px;
+  color: #f5dbe4;
+  border: 1px solid rgba(232, 95, 125, 0.22);
+  border-radius: 8px;
+  background: rgba(232, 95, 125, 0.07);
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.account-profile-button:hover:not(:disabled) {
+  border-color: rgba(232, 95, 125, 0.46);
+  background: rgba(232, 95, 125, 0.12);
+}
+
+.account-profile-button:disabled {
+  opacity: 0.45;
+  cursor: wait;
+}
+
+/* Fase 3.6 — conta compacta no header */
+.account-profile-button {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 9px 10px;
+  color: #f2d7a5;
+  border: 1px solid rgba(208, 160, 82, 0.22);
+  border-radius: 8px;
+  background: rgba(208, 160, 82, 0.06);
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.account-profile-button:hover:not(:disabled) {
+  color: #fff4ef;
+  border-color: rgba(208, 160, 82, 0.42);
+  background: rgba(208, 160, 82, 0.1);
+}

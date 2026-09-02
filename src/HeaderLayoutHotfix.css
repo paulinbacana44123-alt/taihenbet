@@ -1,0 +1,141 @@
+/*
+ * TaihenBet 2.0 — Fase 3.18a
+ * Hotfix de layout do header.
+ *
+ * Objetivo: manter a navegação desktop em uma única linha mesmo com a
+ * inclusão da TaiShop, Central de Missões e Evento sazonal, sem alterar lógica, rotas, carteira ou componentes.
+ */
+
+@media (min-width: 1181px) {
+  .header {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap !important;
+    column-gap: clamp(8px, 1vw, 16px);
+    padding-left: clamp(20px, 2.3vw, 34px);
+    padding-right: clamp(20px, 2.3vw, 34px);
+  }
+
+  .brand-lockup {
+    flex: 0 0 auto;
+    min-width: max-content;
+  }
+
+  .navigation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
+    flex-wrap: nowrap !important;
+    min-width: 0;
+    gap: clamp(0px, 0.16vw, 3px);
+  }
+
+  .navigation > button {
+    flex: 0 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    padding-left: clamp(6px, 0.55vw, 9px);
+    padding-right: clamp(6px, 0.55vw, 9px);
+    font-size: clamp(10.5px, 0.84vw, 12px);
+  }
+
+  .header-account-zone {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    flex-wrap: nowrap !important;
+    gap: clamp(6px, 0.55vw, 9px);
+    min-width: max-content;
+  }
+
+  .header-account-zone .wallet {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  .header-account-zone .wallet strong {
+    white-space: nowrap;
+  }
+}
+
+/*
+ * Na faixa em que um desktop/notebook começa a ficar apertado, comprimimos
+ * apenas o que é seguro comprimir. A navegação continua inteira e em uma linha.
+ */
+@media (min-width: 1181px) and (max-width: 1460px) {
+  .header {
+    column-gap: 7px;
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .brand-lockup {
+    gap: 6px;
+  }
+
+  .navigation {
+    gap: 0;
+  }
+
+  .navigation > button {
+    padding-left: 4px;
+    padding-right: 4px;
+    font-size: 10px;
+  }
+
+  .header-account-zone {
+    gap: 5px;
+  }
+
+  .header-account-zone .wallet {
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+
+  .header-account-zone .wallet > span {
+    font-size: 9px;
+  }
+
+  .header-account-zone .wallet strong {
+    font-size: 13px;
+  }
+
+  .header-account-zone .wallet-ad-button {
+    padding-left: 7px;
+    padding-right: 7px;
+    font-size: 8px;
+  }
+}
+
+/*
+ * Abaixo do breakpoint desktop, não forçamos a versão compacta. As regras
+ * responsivas que o projeto já possuía voltam a controlar o header.
+ */
+@media (max-width: 1180px) {
+  .header .navigation,
+  .header .header-account-zone {
+    min-width: 0;
+  }
+}
+
+/* Fase 3.22 — o Feed entra na mesma faixa desktop sem reabrir a quebra de linha. */
+@media (min-width: 1181px) and (max-width: 1460px) {
+  .navigation > button {
+    padding-left: 3px;
+    padding-right: 3px;
+    font-size: 9.7px;
+  }
+
+  .header {
+    column-gap: 6px;
+  }
+}
+
+@media (min-width: 1461px) and (max-width: 1650px) {
+  .navigation > button {
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: 10.7px;
+  }
+}

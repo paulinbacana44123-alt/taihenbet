@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './GamesPage.css'
 import entidadeBanca from '../assets/entidade-banca.png'
+import taihenModelo2026 from '../assets/taihen-modelo-2026.png'
 import taiMandioca from '../assets/taihen-mandioca.png'
 import mandiocaNormal from '../assets/mandioca-normal.jpeg'
 import paquetaMeme from '../assets/paqueta-meme.jpg'
@@ -31,13 +32,11 @@ const BONUS_DIARIO = 250
 
 
 const APOSTA_MINIMA_TAIGRINHO = 10
-const MEGA_GANHO_MINIMO = 15
-
 const simbolosTaigrinho = [
   {
     id: 'tai',
     nome: 'Tai',
-    imagem: entidadeBanca,
+    imagem: taihenModelo2026,
     peso: 3,
     pagamentos: {
       3: 6,
@@ -177,192 +176,11 @@ function obterSimboloTaigrinho(simboloId) {
   )
 }
 
-function avaliarGradeTaigrinho(grade) {
-  const linhasVencedoras = []
-  let multiplicadorTotal = 0
-
-  linhasTaigrinho.forEach((linha) => {
-    const idsNaLinha = linha.linhas.map(
-      (indiceDaLinha, indiceDoRolo) =>
-        grade[indiceDoRolo][indiceDaLinha],
-    )
-
-    const primeiroId = idsNaLinha[0]
-    let quantidadeIgual = 1
-
-    for (
-      let indice = 1;
-      indice < idsNaLinha.length;
-      indice += 1
-    ) {
-      if (idsNaLinha[indice] !== primeiroId) {
-        break
-      }
-
-      quantidadeIgual += 1
-    }
-
-    if (quantidadeIgual < 3) {
-      return
-    }
-
-    const simbolo = obterSimboloTaigrinho(primeiroId)
-    const multiplicador =
-      simbolo.pagamentos[quantidadeIgual] || 0
-
-    if (multiplicador <= 0) {
-      return
-    }
-
-    multiplicadorTotal += multiplicador
-
-    linhasVencedoras.push({
-      ...linha,
-      simboloId: primeiroId,
-      simboloNome: simbolo.nome,
-      quantidade: quantidadeIgual,
-      multiplicador,
-    })
-  })
-
-  const temCincoTais = linhasVencedoras.some(
-    (linha) =>
-      linha.simboloId === 'tai' &&
-      linha.quantidade === 5,
-  )
-
-  return {
-    multiplicadorTotal,
-    linhasVencedoras,
-    megaGanho:
-      temCincoTais ||
-      multiplicadorTotal >= MEGA_GANHO_MINIMO,
-  }
-}
-
-function criarGradeComVitoriaNormal() {
-  const grade = criarGradeAleatoriaTaigrinho()
-  const linha =
-    linhasTaigrinho[
-      sortearNumero(linhasTaigrinho.length)
-    ]
-  const simbolosNormais = simbolosTaigrinho.filter(
-    (simbolo) => simbolo.id !== 'tai',
-  )
-  const simbolo =
-    simbolosNormais[
-      sortearNumero(simbolosNormais.length)
-    ]
-  const quantidade = sortearNumero(100) < 72 ? 3 : 4
-
-  for (
-    let indiceDoRolo = 0;
-    indiceDoRolo < quantidade;
-    indiceDoRolo += 1
-  ) {
-    grade[indiceDoRolo][linha.linhas[indiceDoRolo]] =
-      simbolo.id
-  }
-
-  if (quantidade < 5) {
-    const simbolosDiferentes = simbolosTaigrinho.filter(
-      (item) => item.id !== simbolo.id,
-    )
-
-    grade[quantidade][linha.linhas[quantidade]] =
-      simbolosDiferentes[
-        sortearNumero(simbolosDiferentes.length)
-      ].id
-  }
-
-  return grade
-}
-
-function criarGradeMegaGanho() {
-  const grade = criarGradeAleatoriaTaigrinho()
-  const linha =
-    linhasTaigrinho[
-      sortearNumero(linhasTaigrinho.length)
-    ]
-
-  for (let indiceDoRolo = 0; indiceDoRolo < 5; indiceDoRolo += 1) {
-    grade[indiceDoRolo][linha.linhas[indiceDoRolo]] =
-      'tai'
-  }
-
-  return grade
-}
-
-function criarGradeSemPremio() {
-  for (let tentativa = 0; tentativa < 80; tentativa += 1) {
-    const grade = criarGradeAleatoriaTaigrinho()
-    const resultado = avaliarGradeTaigrinho(grade)
-
-    if (resultado.multiplicadorTotal === 0) {
-      return grade
-    }
-  }
-
-  return [
-    ['tai', 'uva', 'mute'],
-    ['mandioca', 'onion', 'taicoin'],
-    ['uva', 'mute', 'mandioca'],
-    ['onion', 'taicoin', 'uva'],
-    ['mute', 'mandioca', 'onion'],
-  ]
-}
-
-function criarResultadoTaigrinho() {
-  const sorteio = sortearNumero(1000)
-
-  if (sorteio < 24) {
-    return criarGradeMegaGanho()
-  }
-
-  if (sorteio < 245) {
-    return criarGradeComVitoriaNormal()
-  }
-
-  return criarGradeSemPremio()
-}
-
-
 const APOSTA_MINIMA_CRASH = 10
+const CRASH_POLL_INTERVAL_MS = 500
+const CRASH_POLL_RETRY_MS = 350
+const CRASH_POLL_INITIAL_MS = 250
 const MULTIPLICADOR_MAXIMO_CRASH = 50
-
-function numeroAleatorioEntreZeroEUm() {
-  const numero = new Uint32Array(1)
-  crypto.getRandomValues(numero)
-
-  return numero[0] / 4294967295
-}
-
-function criarPontoDeCrash() {
-  const faixa = numeroAleatorioEntreZeroEUm()
-  const detalhe = numeroAleatorioEntreZeroEUm()
-  let ponto = 1.05
-
-  if (faixa < 0.2) {
-    ponto = 1.05 + detalhe * 0.4
-  } else if (faixa < 0.61) {
-    ponto = 1.45 + detalhe * 1.65
-  } else if (faixa < 0.84) {
-    ponto = 3.1 + detalhe * 3.9
-  } else if (faixa < 0.95) {
-    ponto = 7 + detalhe * 8
-  } else if (faixa < 0.99) {
-    ponto = 15 + detalhe * 15
-  } else {
-    ponto = 30 + detalhe * 20
-  }
-
-  return Number(
-    Math.min(
-      MULTIPLICADOR_MAXIMO_CRASH,
-      ponto,
-    ).toFixed(2),
-  )
-}
 
 function calcularMultiplicadorDoCrash(tempoDecorrido) {
   return Math.min(
@@ -511,31 +329,6 @@ function formatarMoedas(valor) {
   }).format(Number(valor) || 0)
 }
 
-function embaralharIndices() {
-  const indices = Array.from(
-    { length: TOTAL_CASAS },
-    (_, indice) => indice,
-  )
-
-  for (let indice = indices.length - 1; indice > 0; indice -= 1) {
-    const aleatorio = new Uint32Array(1)
-    crypto.getRandomValues(aleatorio)
-
-    const outroIndice = aleatorio[0] % (indice + 1)
-
-    ;[indices[indice], indices[outroIndice]] = [
-      indices[outroIndice],
-      indices[indice],
-    ]
-  }
-
-  return indices
-}
-
-function criarMandiocasNormais(quantidade) {
-  return embaralharIndices().slice(0, quantidade)
-}
-
 function calcularMultiplicador(perigos, reveladas) {
   if (reveladas <= 0) {
     return 1
@@ -554,25 +347,34 @@ function calcularMultiplicador(perigos, reveladas) {
   return Math.min(250, multiplicador)
 }
 
-function carregarPartidaAtiva() {
-  try {
-    const partida = JSON.parse(
-      localStorage.getItem(
-        'taihenbet-taimandioca-partida',
-      ) || 'null',
-    )
-
-    if (
-      !partida ||
-      !Array.isArray(partida.mandiocasNormais) ||
-      !Array.isArray(partida.reveladas)
-    ) {
-      return null
-    }
-
-    return partida
-  } catch {
+function normalizarPartidaTaiMandioca(estadoServidor) {
+  if (!estadoServidor?.sessionId) {
     return null
+  }
+
+  return {
+    id: estadoServidor.sessionId,
+    jogo: 'TaiMandioca',
+    entrada: Math.max(0, Number(estadoServidor.entrada) || 0),
+    quantidadeMandiocasNormais: Math.max(
+      0,
+      Number(estadoServidor.quantidadeMandiocasNormais) || 0,
+    ),
+    reveladas: Array.isArray(estadoServidor.reveladas)
+      ? estadoServidor.reveladas.map(Number)
+      : [],
+    multiplicadorAtual: Math.max(
+      1,
+      Number(estadoServidor.multiplicadorAtual) || 1,
+    ),
+    retornoAtual: Math.max(
+      0,
+      Number(estadoServidor.retornoAtual) || 0,
+    ),
+    iniciadaEm: Date.now(),
+    walletRef: estadoServidor.sessionId,
+    roundId: estadoServidor.sessionId,
+    authoritative: true,
   }
 }
 
@@ -583,10 +385,18 @@ function dataLocalHoje() {
 function GamesPage({
   saldo = 0,
   historicoJogos = [],
-  onDebitarEntrada,
+  onGirarTaigrinho,
+  onIniciarTaiMandioca,
+  onRevelarTaiMandioca,
+  onRecolherTaiMandioca,
+  onCarregarTaiMandioca,
+  onIniciarCrash,
+  onConsultarCrash,
+  onRetirarCrash,
   onFinalizarJogo,
   onReceberBonus,
-  onDebitarEntradaDerby,
+  onIniciarDerby,
+  onConsultarDerby,
   onFinalizarCorridaDerby,
 }) {
   const [jogoSelecionado, setJogoSelecionado] =
@@ -596,9 +406,9 @@ function GamesPage({
     quantidadeMandiocasNormais,
     setQuantidadeMandiocasNormais,
   ] = useState(5)
-  const [partida, setPartida] = useState(
-    carregarPartidaAtiva,
-  )
+  const [partida, setPartida] = useState(null)
+  const [taiMandiocaProcessando, setTaiMandiocaProcessando] =
+    useState(false)
   const [resultadoFinal, setResultadoFinal] =
     useState(null)
   const [animacaoFinal, setAnimacaoFinal] =
@@ -650,6 +460,8 @@ function GamesPage({
   const [apostaCrash, setApostaCrash] = useState('25')
   const [crashRodando, setCrashRodando] =
     useState(false)
+  const [crashProcessando, setCrashProcessando] =
+    useState(false)
   const [multiplicadorCrash, setMultiplicadorCrash] =
     useState(1)
   const [pontosGraficoCrash, setPontosGraficoCrash] =
@@ -663,8 +475,12 @@ function GamesPage({
       'A Comandante Taihen aguarda sua entrada na operação.',
     )
   const animacaoCrashRef = useRef(null)
+  const pollingCrashRef = useRef(null)
+  const pollingCrashOcupadoRef = useRef(false)
   const rodadaCrashRef = useRef(null)
+  const rodadaCrashFinalizadaRef = useRef(null)
   const multiplicadorCrashRef = useRef(1)
+  const offsetRelogioCrashRef = useRef(0)
   const audioSubidaCrashRef = useRef(null)
   const audioQuedaCrashRef = useRef(null)
   const audioRetiradaCrashRef = useRef(null)
@@ -723,18 +539,49 @@ function GamesPage({
   }, [])
 
   useEffect(() => {
-    if (partida) {
-      localStorage.setItem(
-        'taihenbet-taimandioca-partida',
-        JSON.stringify(partida),
+    let cancelado = false
+
+    // Migração da versão antiga: o tabuleiro secreto não mora mais no navegador.
+    localStorage.removeItem('taihenbet-taimandioca-partida')
+
+    async function restaurarColheitaDoServidor() {
+      if (!onCarregarTaiMandioca) {
+        return
+      }
+
+      const estadoServidor = await onCarregarTaiMandioca()
+
+      if (cancelado || !estadoServidor?.sessionId) {
+        return
+      }
+
+      const partidaRestaurada = normalizarPartidaTaiMandioca(
+        estadoServidor,
       )
-      return
+
+      if (!partidaRestaurada) {
+        return
+      }
+
+      setPartida(partidaRestaurada)
+      setEntrada(String(partidaRestaurada.entrada))
+      setQuantidadeMandiocasNormais(
+        partidaRestaurada.quantidadeMandiocasNormais,
+      )
+      setResultadoFinal(null)
+      setMensagemLocal(
+        'Colheita restaurada do servidor. O navegador continua sem saber onde estão as mandiocas normais.',
+      )
     }
 
-    localStorage.removeItem(
-      'taihenbet-taimandioca-partida',
-    )
-  }, [partida])
+    restaurarColheitaDoServidor()
+
+    return () => {
+      cancelado = true
+    }
+    // Executa só na montagem: o callback é apenas a ponte para a RPC.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     if (!animacaoFinal) {
@@ -779,6 +626,13 @@ function GamesPage({
         )
       }
 
+      if (pollingCrashRef.current) {
+        window.clearTimeout(pollingCrashRef.current)
+        pollingCrashRef.current = null
+      }
+
+      pollingCrashOcupadoRef.current = false
+
       const audioCrash =
         audioSubidaCrashRef.current
 
@@ -794,6 +648,36 @@ function GamesPage({
     [],
   )
 
+  useEffect(() => {
+    let cancelado = false
+
+    async function restaurarCrashAutoritativo() {
+      const estadoServidor = await onConsultarCrash?.(null)
+
+      if (cancelado || !estadoServidor?.sessionId) {
+        return
+      }
+
+      if (estadoServidor.status === 'active') {
+        iniciarCrashVisualDoServidor(
+          estadoServidor,
+          { restaurada: true },
+        )
+        return
+      }
+
+      finalizarCrashComEstado(estadoServidor)
+    }
+
+    restaurarCrashAutoritativo()
+
+    return () => {
+      cancelado = true
+    }
+    // A consulta é intencionalmente feita apenas quando a tela de jogos monta.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const tabuleiroVisivel =
     partida || resultadoFinal?.partida || null
 
@@ -807,21 +691,43 @@ function GamesPage({
     resultadoFinal?.partida?.quantidadeMandiocasNormais ||
     quantidadeMandiocasNormais
 
-  const multiplicadorAtual = useMemo(
-    () =>
-      calcularMultiplicador(
-        perigosAtuais,
-        quantidadeRevelada,
-      ),
-    [perigosAtuais, quantidadeRevelada],
+  const multiplicadorAtual = useMemo(() => {
+    const multiplicadorSelado = Number(
+      partida?.multiplicadorAtual ??
+        resultadoFinal?.partida?.multiplicadorAtual,
+    )
+
+    if (
+      Number.isFinite(multiplicadorSelado) &&
+      multiplicadorSelado >= 1
+    ) {
+      return multiplicadorSelado
+    }
+
+    return calcularMultiplicador(
+      perigosAtuais,
+      quantidadeRevelada,
+    )
+  }, [
+    partida?.multiplicadorAtual,
+    resultadoFinal?.partida?.multiplicadorAtual,
+    perigosAtuais,
+    quantidadeRevelada,
+  ])
+
+  const retornoSelado = Number(
+    partida?.retornoAtual ??
+      resultadoFinal?.partida?.retornoAtual,
   )
 
   const retornoAtual =
-    Number(
-      partida?.entrada ||
-        resultadoFinal?.partida?.entrada ||
-        0,
-    ) * multiplicadorAtual
+    Number.isFinite(retornoSelado) && retornoSelado >= 0
+      ? retornoSelado
+      : Number(
+          partida?.entrada ||
+            resultadoFinal?.partida?.entrada ||
+            0,
+        ) * multiplicadorAtual
 
   const casasSegurasRestantes = tabuleiroVisivel
     ? TOTAL_CASAS -
@@ -903,26 +809,46 @@ function GamesPage({
   function finalizarGiroTaigrinho(
     gradeFinal,
     valorAposta,
+    rodadaServidor,
   ) {
-    const avaliacao =
-      avaliarGradeTaigrinho(gradeFinal)
-    const premio =
-      valorAposta * avaliacao.multiplicadorTotal
+    const linhasVencedoras = Array.isArray(
+      rodadaServidor?.linhasVencedoras,
+    )
+      ? rodadaServidor.linhasVencedoras
+      : []
+    const avaliacao = {
+      multiplicadorTotal: Math.max(
+        0,
+        Number(rodadaServidor?.multiplicadorTotal) || 0,
+      ),
+      linhasVencedoras,
+      megaGanho: Boolean(rodadaServidor?.megaGanho),
+    }
+    const premio = Math.max(
+      0,
+      Number(rodadaServidor?.premio) || 0,
+    )
     const ganhou = premio > 0
+    const walletRef = rodadaServidor?.roundId
 
     const registro = {
       jogo: 'Taigrinho',
       status: ganhou ? 'Ganhou' : 'Perdeu',
       entrada: valorAposta,
       premio,
-      lucro: premio - valorAposta,
-      multiplicador:
-        avaliacao.multiplicadorTotal,
-      linhasVencedoras:
-        avaliacao.linhasVencedoras.length,
+      lucro:
+        Number(rodadaServidor?.lucro) ||
+        premio - valorAposta,
+      multiplicador: avaliacao.multiplicadorTotal,
+      linhasVencedoras: avaliacao.linhasVencedoras.length,
       megaGanho: avaliacao.megaGanho,
       iniciadaEm: Date.now() - 1800,
       encerradaEm: Date.now(),
+      walletRef,
+      roundId: walletRef,
+      authoritative: true,
+      walletSettled: true,
+      walletProfile: rodadaServidor?.profile || null,
     }
 
     onFinalizarJogo?.(registro)
@@ -932,6 +858,7 @@ function GamesPage({
       ...avaliacao,
       premio,
       entrada: valorAposta,
+      authoritative: true,
     })
     setTaigrinhoGirando(false)
     setRolosParados([
@@ -974,7 +901,7 @@ function GamesPage({
     )
   }
 
-  function girarTaigrinho() {
+  async function girarTaigrinho() {
     const valorAposta = Number(apostaTaigrinho)
 
     if (taigrinhoGirando) {
@@ -995,13 +922,6 @@ function GamesPage({
       setMensagemTaigrinho(
         'Você não possui TaiCoins suficientes para esse giro.',
       )
-      return
-    }
-
-    const debitou =
-      onDebitarEntrada?.(valorAposta)
-
-    if (!debitou) {
       return
     }
 
@@ -1036,12 +956,35 @@ function GamesPage({
     ])
     setTaigrinhoGirando(true)
     setMensagemTaigrinho(
-      'Os rolos estão acelerando. Agora vem a parte que dá aflição.',
+      'A banca está lacrando a rodada no servidor. O navegador agora só assiste.',
     )
 
     iniciarSomDoGiro()
 
-    const gradeFinal = criarResultadoTaigrinho()
+    const rodadaServidor = await onGirarTaigrinho?.(valorAposta)
+    const gradeFinal = rodadaServidor?.grade
+
+    if (
+      !rodadaServidor?.roundId ||
+      !Array.isArray(gradeFinal) ||
+      gradeFinal.length !== 5 ||
+      gradeFinal.some(
+        (rolo) => !Array.isArray(rolo) || rolo.length !== 3,
+      )
+    ) {
+      pararSomDoGiro()
+      setTaigrinhoGirando(false)
+      setRolosParados([true, true, true, true, true])
+      setMensagemTaigrinho(
+        'A banca não conseguiu autenticar o resultado deste giro.',
+      )
+      return
+    }
+
+    setMensagemTaigrinho(
+      'Resultado selado no servidor. Os rolos agora só estão fazendo teatro.',
+    )
+
     const temposDeParada = [
       1500,
       1850,
@@ -1103,6 +1046,7 @@ function GamesPage({
             finalizarGiroTaigrinho(
               gradeFinal,
               valorAposta,
+              rodadaServidor,
             )
           }, 340)
 
@@ -1137,7 +1081,7 @@ function GamesPage({
 
     audio.play().catch(() => {
       setMensagemCrash(
-        'O navegador bloqueou o som. Clique novamente em iniciar a operação.',
+        'O navegador bloqueou o som. A operação continua selada no servidor.',
       )
     })
   }
@@ -1186,40 +1130,132 @@ function GamesPage({
     audio.play().catch(() => {})
   }
 
-  function registrarResultadoCrash({
-    ganhou,
-    valorAposta,
-    multiplicador,
-    pontoDeCrash = null,
-    iniciadaEm,
-  }) {
-    const premio = ganhou
-      ? valorAposta * multiplicador
-      : 0
+  function pararPollingCrash() {
+    if (pollingCrashRef.current) {
+      window.clearTimeout(pollingCrashRef.current)
+      pollingCrashRef.current = null
+    }
+
+    pollingCrashOcupadoRef.current = false
+  }
+
+  function sincronizarRelogioCrash(estadoServidor) {
+    const agoraServidor = Date.parse(
+      estadoServidor?.serverNow || '',
+    )
+
+    if (Number.isFinite(agoraServidor)) {
+      offsetRelogioCrashRef.current =
+        agoraServidor - Date.now()
+    }
+  }
+
+  function finalizarCrashComEstado(estadoServidor) {
+    const roundId =
+      estadoServidor?.roundId ||
+      estadoServidor?.sessionId
+
+    if (!roundId) {
+      return
+    }
+
+    if (rodadaCrashFinalizadaRef.current === roundId) {
+      return
+    }
+
+    rodadaCrashFinalizadaRef.current = roundId
+
+    const rodada = rodadaCrashRef.current
+
+    if (rodada?.sessionId === roundId) {
+      rodada.ativa = false
+    }
+
+    pararPollingCrash()
+
+    if (animacaoCrashRef.current) {
+      window.cancelAnimationFrame(
+        animacaoCrashRef.current,
+      )
+      animacaoCrashRef.current = null
+    }
+
+    pararSomDoCrash()
+    setCrashProcessando(false)
+    setCrashRodando(false)
+
+    const ganhou = estadoServidor.status === 'cashout'
+    const valorAposta = Math.max(
+      0,
+      Number(estadoServidor.entrada) ||
+        Number(rodada?.valorAposta) ||
+        Number(apostaCrash) ||
+        0,
+    )
+    const premio = Math.max(
+      0,
+      Number(estadoServidor.premio) || 0,
+    )
+    const pontoDeCrash = Math.max(
+      1,
+      Number(estadoServidor.crashPoint) || 1,
+    )
+    const multiplicador = ganhou
+      ? Math.max(
+          1,
+          Number(
+            estadoServidor.cashoutMultiplier ??
+              estadoServidor.multiplicadorAtual,
+          ) || 1,
+        )
+      : pontoDeCrash
+    const lucro = Number.isFinite(
+      Number(estadoServidor.lucro),
+    )
+      ? Number(estadoServidor.lucro)
+      : premio - valorAposta
+    const iniciadaEmServidor = Date.parse(
+      estadoServidor.startedAt || '',
+    )
+    const iniciadaEm = Number.isFinite(
+      iniciadaEmServidor,
+    )
+      ? iniciadaEmServidor
+      : rodada?.iniciadaEm || Date.now()
+
+    multiplicadorCrashRef.current = multiplicador
+    setMultiplicadorCrash(multiplicador)
+    setPontosGraficoCrash((pontosAtuais) => [
+      ...pontosAtuais.slice(-88),
+      multiplicador,
+    ])
 
     onFinalizarJogo?.({
       jogo: 'Crash do Regime',
       status: ganhou ? 'Ganhou' : 'Perdeu',
       entrada: valorAposta,
       premio,
-      lucro: premio - valorAposta,
+      lucro,
       multiplicador,
       pontoDeCrash,
       retiradaEm: ganhou ? multiplicador : null,
       iniciadaEm,
       encerradaEm: Date.now(),
+      walletRef: roundId,
+      roundId,
+      authoritative: true,
+      walletSettled: true,
+      walletProfile: estadoServidor.profile || null,
     })
 
-    const novoResultado = {
+    setResultadoCrash({
       status: ganhou ? 'Ganhou' : 'Perdeu',
       entrada: valorAposta,
       premio,
       multiplicador,
       pontoDeCrash,
-    }
-
-    setResultadoCrash(novoResultado)
-    setCrashRodando(false)
+      authoritative: true,
+    })
 
     if (ganhou) {
       tocarAudioDoCrash(
@@ -1229,8 +1265,8 @@ function GamesPage({
 
       setMensagemCrash(
         multiplicador >= 10
-          ? 'Retirada histórica. Você escapou do regime com lucro excessivo.'
-          : 'Retirada autorizada sob protesto da Comandante.',
+          ? 'Retirada histórica. O servidor confirmou sua fuga antes do confisco.'
+          : 'Retirada validada pelo servidor sob protesto da Comandante.',
       )
 
       if (multiplicador >= 10) {
@@ -1238,7 +1274,7 @@ function GamesPage({
           tipo: 'escapou',
           titulo: 'VOCÊ ESCAPOU DO REGIME!',
           subtitulo:
-            'A retirada foi concluída antes do confisco.',
+            'O servidor confirmou que a retirada chegou antes do confisco.',
           premio,
           multiplicador,
         })
@@ -1253,86 +1289,39 @@ function GamesPage({
     )
 
     setMensagemCrash(
-      'Operação encerrada pela Comandante. Seus bens fictícios foram confiscados.',
+      'Operação encerrada pelo relógio da banca. O ponto de confisco foi revelado somente agora.',
     )
 
     setOverlayCrash({
       tipo: 'confiscado',
       titulo: 'OPERAÇÃO ENCERRADA!',
       subtitulo:
-        'O regime tomou suas TaiCoins antes da retirada.',
+        'O servidor registrou o confisco antes de qualquer retirada válida.',
       premio: 0,
       multiplicador,
     })
   }
 
-  function encerrarCrashPorQueda(
-    pontoDeCrash,
-    rodada,
-  ) {
-    if (!rodada?.ativa) {
-      return
-    }
-
-    rodada.ativa = false
-    pararSomDoCrash()
-
-    if (animacaoCrashRef.current) {
-      window.cancelAnimationFrame(
-        animacaoCrashRef.current,
-      )
-    }
-
-    multiplicadorCrashRef.current =
-      pontoDeCrash
-
-    setMultiplicadorCrash(pontoDeCrash)
-    setPontosGraficoCrash((pontosAtuais) => [
-      ...pontosAtuais.slice(-88),
-      pontoDeCrash,
-    ])
-
-    registrarResultadoCrash({
-      ganhou: false,
-      valorAposta: rodada.valorAposta,
-      multiplicador: pontoDeCrash,
-      pontoDeCrash,
-      iniciadaEm: rodada.iniciadaEm,
-    })
-  }
-
-  function animarRodadaCrash(tempoAtual) {
+  function animarRodadaCrash() {
     const rodada = rodadaCrashRef.current
 
     if (!rodada?.ativa) {
       return
     }
 
-    if (!rodada.tempoInicial) {
-      rodada.tempoInicial = tempoAtual
-    }
-
-    const tempoDecorrido =
-      tempoAtual - rodada.tempoInicial
-
+    const agoraServidorEstimado =
+      Date.now() + offsetRelogioCrashRef.current
+    const tempoDecorrido = Math.max(
+      0,
+      agoraServidorEstimado - rodada.iniciadaEm,
+    )
     const multiplicadorCalculado =
       calcularMultiplicadorDoCrash(
         tempoDecorrido,
       )
-
-    if (
-      multiplicadorCalculado >=
-      rodada.pontoDeCrash
-    ) {
-      encerrarCrashPorQueda(
-        rodada.pontoDeCrash,
-        rodada,
-      )
-      return
-    }
-
-    const multiplicadorExibido =
-      Number(multiplicadorCalculado.toFixed(2))
+    const multiplicadorExibido = Number(
+      multiplicadorCalculado.toFixed(2),
+    )
 
     multiplicadorCrashRef.current =
       multiplicadorExibido
@@ -1356,12 +1345,145 @@ function GamesPage({
       )
   }
 
-  function iniciarRodadaCrash(
-    pontoForcado = null,
+  function agendarConsultaCrash(delay = CRASH_POLL_INTERVAL_MS) {
+    pararPollingCrash()
+
+    pollingCrashRef.current = window.setTimeout(
+      async () => {
+        const rodada = rodadaCrashRef.current
+
+        if (!rodada?.ativa) {
+          return
+        }
+
+        if (pollingCrashOcupadoRef.current) {
+          agendarConsultaCrash(CRASH_POLL_RETRY_MS)
+          return
+        }
+
+        pollingCrashOcupadoRef.current = true
+
+        try {
+          const estadoServidor =
+            await onConsultarCrash?.(rodada.sessionId)
+
+          if (!rodadaCrashRef.current?.ativa) {
+            return
+          }
+
+          if (!estadoServidor?.sessionId) {
+            setMensagemCrash(
+              'O fiscal perdeu uma atualização do servidor. Tentando novamente...',
+            )
+          } else {
+            sincronizarRelogioCrash(estadoServidor)
+
+            if (estadoServidor.status !== 'active') {
+              finalizarCrashComEstado(estadoServidor)
+              return
+            }
+          }
+        } finally {
+          pollingCrashOcupadoRef.current = false
+        }
+
+        if (rodadaCrashRef.current?.ativa) {
+          agendarConsultaCrash(CRASH_POLL_INTERVAL_MS)
+        }
+      },
+      delay,
+    )
+  }
+
+  function iniciarCrashVisualDoServidor(
+    estadoServidor,
+    { restaurada = false } = {},
   ) {
+    if (!estadoServidor?.sessionId) {
+      return false
+    }
+
+    if (estadoServidor.status !== 'active') {
+      finalizarCrashComEstado(estadoServidor)
+      return false
+    }
+
+    const iniciadaEm = Date.parse(
+      estadoServidor.startedAt || '',
+    )
+
+    if (!Number.isFinite(iniciadaEm)) {
+      setMensagemCrash(
+        'A banca devolveu um relógio inválido para esta operação.',
+      )
+      return false
+    }
+
+    sincronizarRelogioCrash(estadoServidor)
+
+    if (animacaoCrashRef.current) {
+      window.cancelAnimationFrame(
+        animacaoCrashRef.current,
+      )
+    }
+
+    pararPollingCrash()
+
+    const valorAposta = Math.max(
+      0,
+      Number(estadoServidor.entrada) || 0,
+    )
+    const multiplicadorInicial = Math.max(
+      1,
+      Number(estadoServidor.multiplicadorAtual) || 1,
+    )
+
+    rodadaCrashFinalizadaRef.current = null
+    rodadaCrashRef.current = {
+      ativa: true,
+      sessionId: estadoServidor.sessionId,
+      roundId:
+        estadoServidor.roundId || estadoServidor.sessionId,
+      valorAposta,
+      iniciadaEm,
+      authoritative: true,
+    }
+
+    multiplicadorCrashRef.current = multiplicadorInicial
+    setMultiplicadorCrash(multiplicadorInicial)
+    setPontosGraficoCrash([1, multiplicadorInicial])
+    setResultadoCrash(null)
+    setOverlayCrash(null)
+    setCrashProcessando(false)
+    setCrashRodando(true)
+    setApostaCrash(String(valorAposta || apostaCrash))
+
+    if (restaurada) {
+      setJogoSelecionado('crash-regime')
+      setMensagemCrash(
+        'Operação restaurada do servidor. O ponto de confisco continua secreto.',
+      )
+    } else {
+      setMensagemCrash(
+        'Operação selada no servidor. O navegador só acompanha o relógio da banca.',
+      )
+    }
+
+    iniciarSomDoCrash()
+
+    animacaoCrashRef.current =
+      window.requestAnimationFrame(
+        animarRodadaCrash,
+      )
+
+    agendarConsultaCrash(CRASH_POLL_INITIAL_MS)
+    return true
+  }
+
+  async function iniciarRodadaCrash() {
     const valorAposta = Number(apostaCrash)
 
-    if (crashRodando) {
+    if (crashRodando || crashProcessando) {
       return
     }
 
@@ -1382,90 +1504,69 @@ function GamesPage({
       return
     }
 
-    const debitou =
-      onDebitarEntrada?.(valorAposta)
-
-    if (!debitou) {
-      return
-    }
-
-    if (animacaoCrashRef.current) {
-      window.cancelAnimationFrame(
-        animacaoCrashRef.current,
-      )
-    }
-
-    const pontoDeCrash =
-      pontoForcado ||
-      criarPontoDeCrash()
-
-    rodadaCrashRef.current = {
-      ativa: true,
-      valorAposta,
-      pontoDeCrash,
-      tempoInicial: null,
-      iniciadaEm: Date.now(),
-    }
-
-    multiplicadorCrashRef.current = 1
-
-    setMultiplicadorCrash(1)
-    setPontosGraficoCrash([1])
+    setCrashProcessando(true)
     setResultadoCrash(null)
     setOverlayCrash(null)
-    setCrashRodando(true)
     setMensagemCrash(
-      'Operação iniciada. Retire antes que a Comandante encerre tudo.',
+      'A Comandante está selando o ponto de confisco no servidor...',
     )
 
-    iniciarSomDoCrash()
+    try {
+      const estadoServidor =
+        await onIniciarCrash?.(valorAposta)
 
-    animacaoCrashRef.current =
-      window.requestAnimationFrame(
-        animarRodadaCrash,
-      )
+      if (!estadoServidor?.sessionId) {
+        setMensagemCrash(
+          'A banca não conseguiu autenticar esta operação.',
+        )
+        return
+      }
+
+      if (estadoServidor.status !== 'active') {
+        // Pode acontecer ao recuperar uma operação anterior que caiu enquanto
+        // a aba estava fechada. Nenhuma nova entrada é cobrada neste caso.
+        finalizarCrashComEstado(estadoServidor)
+        return
+      }
+
+      iniciarCrashVisualDoServidor(estadoServidor)
+    } finally {
+      setCrashProcessando(false)
+    }
   }
 
-  function retirarDoCrash(
-    multiplicadorForcado = null,
-  ) {
+  async function retirarDoCrash() {
     const rodada = rodadaCrashRef.current
 
-    if (!rodada?.ativa && multiplicadorForcado === null) {
+    if (
+      !rodada?.ativa ||
+      !rodada.sessionId ||
+      crashProcessando
+    ) {
       return
     }
 
-    const multiplicador =
-      Number(
-        (
-          multiplicadorForcado ??
-          multiplicadorCrashRef.current
-        ).toFixed(2),
-      )
+    setCrashProcessando(true)
+    setMensagemCrash(
+      'Pedido de retirada enviado. O servidor está comparando os relógios...',
+    )
 
-    if (rodada?.ativa) {
-      rodada.ativa = false
+    try {
+      const estadoServidor =
+        await onRetirarCrash?.(rodada.sessionId)
+
+      if (!estadoServidor?.sessionId) {
+        setMensagemCrash(
+          'A banca não conseguiu confirmar a retirada. A operação continua sob consulta.',
+        )
+        return
+      }
+
+      sincronizarRelogioCrash(estadoServidor)
+      finalizarCrashComEstado(estadoServidor)
+    } finally {
+      setCrashProcessando(false)
     }
-
-    if (animacaoCrashRef.current) {
-      window.cancelAnimationFrame(
-        animacaoCrashRef.current,
-      )
-    }
-
-    pararSomDoCrash()
-
-    registrarResultadoCrash({
-      ganhou: true,
-      valorAposta:
-        rodada?.valorAposta ||
-        Number(apostaCrash),
-      multiplicador,
-      pontoDeCrash:
-        rodada?.pontoDeCrash || null,
-      iniciadaEm:
-        rodada?.iniciadaEm || Date.now(),
-    })
   }
 
   function tocarSomTaiMandioca(
@@ -1487,8 +1588,12 @@ function GamesPage({
     audio.play().catch(() => {})
   }
 
-  function iniciarPartida() {
+  async function iniciarPartida() {
     const valorEntrada = Number(entrada)
+
+    if (taiMandiocaProcessando) {
+      return
+    }
 
     if (
       !Number.isFinite(valorEntrada) ||
@@ -1507,52 +1612,75 @@ function GamesPage({
       return
     }
 
-    const debitou = onDebitarEntrada?.(valorEntrada)
-
-    if (!debitou) {
-      return
-    }
-
-    const novaPartida = {
-      id: crypto.randomUUID(),
-      jogo: 'TaiMandioca',
-      entrada: valorEntrada,
-      quantidadeMandiocasNormais,
-      mandiocasNormais: criarMandiocasNormais(
-        quantidadeMandiocasNormais,
-      ),
-      reveladas: [],
-      iniciadaEm: Date.now(),
-    }
-
-    tocarSomTaiMandioca(
-      audioInicioTaiMandiocaRef,
-      {
-        volume: 0.68,
-      },
-    )
-
-    setResultadoFinal(null)
-    setAnimacaoFinal(null)
-    setPartida(novaPartida)
+    setTaiMandiocaProcessando(true)
     setMensagemLocal(
-      'A colheita começou. Encontre as TaiMandiocas e fuja das mandiocas normais.',
+      'A banca está enterrando as mandiocas normais fora do alcance do DevTools...',
     )
+
+    try {
+      const estadoServidor = await onIniciarTaiMandioca?.(
+        valorEntrada,
+        quantidadeMandiocasNormais,
+      )
+
+      const novaPartida = normalizarPartidaTaiMandioca(
+        estadoServidor,
+      )
+
+      if (!novaPartida) {
+        setMensagemLocal(
+          'A plantação não pôde ser selada no servidor.',
+        )
+        return
+      }
+
+      tocarSomTaiMandioca(
+        audioInicioTaiMandiocaRef,
+        {
+          volume: 0.68,
+        },
+      )
+
+      setResultadoFinal(null)
+      setAnimacaoFinal(null)
+      setPartida(novaPartida)
+      setEntrada(String(novaPartida.entrada))
+      setQuantidadeMandiocasNormais(
+        novaPartida.quantidadeMandiocasNormais,
+      )
+      setMensagemLocal(
+        estadoServidor?.evento === 'resume'
+          ? 'A banca recuperou sua plantação ativa. O mapa secreto nunca saiu do servidor.'
+          : 'Plantação selada no servidor. Escolha uma casa; o navegador não sabe onde está a mandioca normal.',
+      )
+    } finally {
+      setTaiMandiocaProcessando(false)
+    }
   }
 
-  function registrarResultado({
+  function registrarResultadoAutoritativo({
     status,
     partidaEncerrada,
-    premio,
-    multiplicador,
+    estadoServidor,
     casaFatal = null,
   }) {
+    const premio = Math.max(
+      0,
+      Number(estadoServidor?.premio) || 0,
+    )
+    const multiplicador = Math.max(
+      1,
+      Number(estadoServidor?.multiplicadorAtual) || 1,
+    )
+
     onFinalizarJogo?.({
       jogo: 'TaiMandioca',
       status,
       entrada: partidaEncerrada.entrada,
       premio,
-      lucro: premio - partidaEncerrada.entrada,
+      lucro:
+        Number(estadoServidor?.lucro) ||
+        premio - partidaEncerrada.entrada,
       multiplicador,
       mandiocasNormais:
         partidaEncerrada.quantidadeMandiocasNormais,
@@ -1561,174 +1689,227 @@ function GamesPage({
       casaFatal,
       iniciadaEm: partidaEncerrada.iniciadaEm,
       encerradaEm: Date.now(),
+      walletRef: partidaEncerrada.walletRef || partidaEncerrada.id,
+      roundId: estadoServidor?.roundId || partidaEncerrada.id,
+      authoritative: true,
+      walletSettled: true,
+      walletProfile: estadoServidor?.profile || null,
     })
   }
 
-  function revelarCasa(indice) {
-    if (!partida || partida.reveladas.includes(indice)) {
+  async function revelarCasa(indice) {
+    if (
+      !partida ||
+      partida.reveladas.includes(indice) ||
+      taiMandiocaProcessando
+    ) {
       return
     }
 
-    const encontrouMandiocaNormal =
-      partida.mandiocasNormais.includes(indice)
+    setTaiMandiocaProcessando(true)
 
-    if (encontrouMandiocaNormal) {
-      tocarSomTaiMandioca(
-        audioDerrotaTaiMandiocaRef,
-        {
-          volume: 0.84,
-        },
+    try {
+      const estadoServidor = await onRevelarTaiMandioca?.(
+        partida.id,
+        indice,
       )
 
-      const partidaPerdida = {
-        ...partida,
-        casaFatal: indice,
+      if (!estadoServidor?.sessionId) {
+        setMensagemLocal(
+          'A banca não conseguiu consultar essa mandioca no servidor.',
+        )
+        return
       }
 
-      registrarResultado({
-        status: 'Perdeu',
-        partidaEncerrada: partidaPerdida,
-        premio: 0,
-        multiplicador: multiplicadorAtual,
-        casaFatal: indice,
-      })
+      const partidaAtualizada = {
+        ...normalizarPartidaTaiMandioca(estadoServidor),
+        iniciadaEm: partida.iniciadaEm,
+      }
 
-      setPartida(null)
-      setResultadoFinal({
-        status: 'Perdeu',
-        partida: partidaPerdida,
-        premio: 0,
-      })
-      setAnimacaoFinal({
-        id: crypto.randomUUID(),
-        status: 'perdeu',
-        titulo: 'VOCÊ FOI MANDIOCADO!',
-        subtitulo:
-          'A mandioca normal encerrou sua colheita.',
-        premio: 0,
-      })
-      setMensagemLocal(
-        'MANDIOCA NORMAL! A plantação venceu e a Entidade da Banca agradece.',
-      )
+      if (estadoServidor.evento === 'lost') {
+        tocarSomTaiMandioca(
+          audioDerrotaTaiMandiocaRef,
+          {
+            volume: 0.84,
+          },
+        )
 
+        const casaFatal = Number(
+          estadoServidor.fatalIndex ?? indice,
+        )
+        const partidaPerdida = {
+          ...partidaAtualizada,
+          casaFatal,
+        }
+
+        registrarResultadoAutoritativo({
+          status: 'Perdeu',
+          partidaEncerrada: partidaPerdida,
+          estadoServidor,
+          casaFatal,
+        })
+
+        setPartida(null)
+        setResultadoFinal({
+          status: 'Perdeu',
+          partida: partidaPerdida,
+          premio: 0,
+        })
+        setAnimacaoFinal({
+          id: crypto.randomUUID(),
+          status: 'perdeu',
+          titulo: 'VOCÊ FOI MANDIOCADO!',
+          subtitulo:
+            'O servidor confirmou: era uma mandioca normal.',
+          premio: 0,
+        })
+        setMensagemLocal(
+          'MANDIOCA NORMAL! A decisão veio do servidor e a plantação ficou com sua entrada.',
+        )
+        return
+      }
+
+      if (estadoServidor.evento === 'perfect') {
+        tocarSomTaiMandioca(
+          audioPerfeitoTaiMandiocaRef,
+          {
+            volume: 0.78,
+          },
+        )
+
+        const premio = Math.max(
+          0,
+          Number(estadoServidor.premio) || 0,
+        )
+
+        registrarResultadoAutoritativo({
+          status: 'Ganhou',
+          partidaEncerrada: partidaAtualizada,
+          estadoServidor,
+        })
+
+        setPartida(null)
+        setResultadoFinal({
+          status: 'Ganhou',
+          partida: partidaAtualizada,
+          premio,
+        })
+        setAnimacaoFinal({
+          id: crypto.randomUUID(),
+          status: 'ganhou',
+          titulo: 'COLHEITA PERFEITA!',
+          subtitulo:
+            'O servidor confirmou todas as TaiMandiocas seguras.',
+          premio,
+        })
+        setMensagemLocal(
+          `Colheita perfeita selada no servidor: ${formatarMoedas(
+            premio,
+          )} TaiCoins.`,
+        )
+        return
+      }
+
+      if (
+        estadoServidor.evento === 'safe' ||
+        estadoServidor.evento === 'already_revealed'
+      ) {
+        tocarSomTaiMandioca(
+          audioSeguroTaiMandiocaRef,
+          {
+            volume: 0.62,
+            playbackRate:
+              1 + partidaAtualizada.reveladas.length * 0.025,
+          },
+        )
+
+        setPartida(partidaAtualizada)
+        setMensagemLocal(
+          `TAIMANDIOCA CONFIRMADA PELO SERVIDOR! Retorno atual: ${formatarMoedas(
+            Number(estadoServidor.retornoAtual) || 0,
+          )} TaiCoins.`,
+        )
+      }
+    } finally {
+      setTaiMandiocaProcessando(false)
+    }
+  }
+
+  async function recolherPremio() {
+    if (
+      !partida ||
+      partida.reveladas.length === 0 ||
+      taiMandiocaProcessando
+    ) {
+      if (partida && partida.reveladas.length === 0) {
+        setMensagemLocal(
+          'Encontre ao menos uma TaiMandioca antes de recolher.',
+        )
+      }
       return
     }
 
-    const novasReveladas = [...partida.reveladas, indice]
-    const novaPartida = {
-      ...partida,
-      reveladas: novasReveladas,
-    }
+    setTaiMandiocaProcessando(true)
 
-    const completouPlantacao =
-      novasReveladas.length ===
-      TOTAL_CASAS -
-        partida.quantidadeMandiocasNormais
+    try {
+      const estadoServidor = await onRecolherTaiMandioca?.(
+        partida.id,
+      )
 
-    const novoMultiplicador = calcularMultiplicador(
-      partida.quantidadeMandiocasNormais,
-      novasReveladas.length,
-    )
+      if (
+        !estadoServidor?.sessionId ||
+        estadoServidor.evento !== 'cashout'
+      ) {
+        setMensagemLocal(
+          'A banca não conseguiu liquidar a colheita no servidor.',
+        )
+        return
+      }
 
-    if (completouPlantacao) {
+      const partidaEncerrada = {
+        ...normalizarPartidaTaiMandioca(estadoServidor),
+        iniciadaEm: partida.iniciadaEm,
+      }
+      const premio = Math.max(
+        0,
+        Number(estadoServidor.premio) || 0,
+      )
+
       tocarSomTaiMandioca(
-        audioPerfeitoTaiMandiocaRef,
+        audioRecolherTaiMandiocaRef,
         {
-          volume: 0.78,
+          volume: 0.74,
         },
       )
 
-      const premio =
-        partida.entrada * novoMultiplicador
-
-      registrarResultado({
+      registrarResultadoAutoritativo({
         status: 'Ganhou',
-        partidaEncerrada: novaPartida,
-        premio,
-        multiplicador: novoMultiplicador,
+        partidaEncerrada,
+        estadoServidor,
       })
 
       setPartida(null)
       setResultadoFinal({
         status: 'Ganhou',
-        partida: novaPartida,
+        partida: partidaEncerrada,
         premio,
       })
       setAnimacaoFinal({
         id: crypto.randomUUID(),
         status: 'ganhou',
-        titulo: 'COLHEITA PERFEITA!',
+        titulo: 'COLHEITA GARANTIDA!',
         subtitulo:
-          'Você encontrou todas as TaiMandiocas da plantação.',
+          'O servidor liquidou sua saída antes da mandioca normal.',
         premio,
       })
       setMensagemLocal(
-        'Você encontrou todas as TaiMandiocas. Colheita perfeita e estatisticamente absurda.',
+        `Cashout liquidado no servidor: ${formatarMoedas(
+          premio,
+        )} TaiCoins retornaram para a carteira.`,
       )
-
-      return
+    } finally {
+      setTaiMandiocaProcessando(false)
     }
-
-    tocarSomTaiMandioca(
-      audioSeguroTaiMandiocaRef,
-      {
-        volume: 0.62,
-        playbackRate:
-          1 + novasReveladas.length * 0.025,
-      },
-    )
-
-    setPartida(novaPartida)
-    setMensagemLocal(
-      `TAIMANDIOCA ENCONTRADA! Retorno atual: ${formatarMoedas(
-        partida.entrada * novoMultiplicador,
-      )} TaiCoins.`,
-    )
-  }
-
-  function recolherPremio() {
-    if (!partida || partida.reveladas.length === 0) {
-      setMensagemLocal(
-        'Encontre ao menos uma TaiMandioca antes de recolher.',
-      )
-      return
-    }
-
-    const premio = retornoAtual
-
-    tocarSomTaiMandioca(
-      audioRecolherTaiMandiocaRef,
-      {
-        volume: 0.74,
-      },
-    )
-
-    registrarResultado({
-      status: 'Ganhou',
-      partidaEncerrada: partida,
-      premio,
-      multiplicador: multiplicadorAtual,
-    })
-
-    setPartida(null)
-    setResultadoFinal({
-      status: 'Ganhou',
-      partida,
-      premio,
-    })
-    setAnimacaoFinal({
-      id: crypto.randomUUID(),
-      status: 'ganhou',
-      titulo: 'COLHEITA GARANTIDA!',
-      subtitulo:
-        'Você saiu da roça antes de encontrar a mandioca normal.',
-      premio,
-    })
-    setMensagemLocal(
-      `Você saiu da roça com ${formatarMoedas(
-        premio,
-      )} TaiCoins antes de encontrar uma mandioca normal.`,
-    )
   }
 
   function limparResultado() {
@@ -1738,7 +1919,7 @@ function GamesPage({
     )
   }
 
-  function receberBonusDiario() {
+  async function receberBonusDiario() {
     if (bonusRecebidoHoje) {
       setMensagemLocal(
         'A Entidade já entregou sua cesta diária de mandiocas.',
@@ -1753,7 +1934,8 @@ function GamesPage({
       },
     )
 
-    onReceberBonus?.(BONUS_DIARIO)
+    const recebeu = await onReceberBonus?.(BONUS_DIARIO)
+    if (!recebeu) return
     localStorage.setItem(
       'taihenbet-bonus-diario',
       dataLocalHoje(),
@@ -2086,7 +2268,7 @@ function GamesPage({
           }`}
           onClick={receberBonusDiario}
         >
-          <img src={entidadeBanca} alt="" aria-hidden="true" />
+          <img src={taihenModelo2026} alt="" aria-hidden="true" />
 
           <span>
             <small>
@@ -2110,7 +2292,7 @@ function GamesPage({
         <button
           type="button"
           data-neytai-target="game-taimandioca"
-          className={`game-catalog-card ${
+          className={`game-catalog-card cassava-catalog-card ${
             jogoSelecionado === 'taimandioca'
               ? 'active'
               : ''
@@ -2125,7 +2307,7 @@ function GamesPage({
           </div>
 
           <div>
-            <span>DISPONÍVEL AGORA</span>
+            <span>SAFRA 2026 · DISPONÍVEL</span>
             <h2>TaiMandioca</h2>
             <p>
               Escolha as mandiocas com a cara da Tai. A mandioca
@@ -2137,7 +2319,7 @@ function GamesPage({
         <button
           type="button"
           data-neytai-target="game-taigrinho"
-          className={`game-catalog-card ${
+          className={`game-catalog-card taigrinho-catalog-card ${
             jogoSelecionado === 'taigrinho'
               ? 'active'
               : ''
@@ -2151,13 +2333,13 @@ function GamesPage({
         >
           <div className="game-catalog-icon tiger-icon">
             <img
-              src={entidadeBanca}
-              alt="Taigrinho"
+              src={taihenModelo2026}
+              alt="Taihen do modelo 2026"
             />
           </div>
 
           <div>
-            <span>DISPONÍVEL AGORA</span>
+            <span>CASSINO 2.0 · DISPONÍVEL</span>
             <h2>Taigrinho</h2>
             <p>
               Cinco rolos, linhas malucas, Paquetá na derrota e
@@ -2169,7 +2351,7 @@ function GamesPage({
         <button
           type="button"
           data-neytai-target="game-crash-regime"
-          className={`game-catalog-card ${
+          className={`game-catalog-card regime-catalog-card ${
             jogoSelecionado === 'crash-regime'
               ? 'active'
               : ''
@@ -2189,7 +2371,7 @@ function GamesPage({
           </div>
 
           <div>
-            <span>DISPONÍVEL AGORA</span>
+            <span>NOVO REGIME · DISPONÍVEL</span>
             <h2>Crash do Regime</h2>
             <p>
               O multiplicador sobe até a Comandante encerrar a
@@ -2201,7 +2383,7 @@ function GamesPage({
         <button
           type="button"
           data-neytai-target="game-derby"
-          className={`game-catalog-card ${
+          className={`game-catalog-card derby-catalog-card ${
             jogoSelecionado === 'derby'
               ? 'active'
               : ''
@@ -2216,7 +2398,7 @@ function GamesPage({
           </div>
 
           <div>
-            <span>DISPONÍVEL AGORA</span>
+            <span>PROTOCOLO MAMBO · ATIVO</span>
             <h2>Taihen Derby</h2>
             <p>
               Seis Umamusumes, vídeos de vitória e o
@@ -2233,7 +2415,8 @@ function GamesPage({
         >
           <DerbyPage
             saldo={saldo}
-            onDebitarEntrada={onDebitarEntradaDerby}
+            onIniciarCorrida={onIniciarDerby}
+            onConsultarCorrida={onConsultarDerby}
             onFinalizarCorrida={onFinalizarCorridaDerby}
           />
         </div>
@@ -2245,8 +2428,11 @@ function GamesPage({
           <div className="cassava-main">
             <div className="cassava-toolbar">
               <div>
-                <span>JOGO ATIVO</span>
+                <span>SAFRA 2026 · JOGO ATIVO</span>
                 <h2>TaiMandioca</h2>
+                <small className="cassava-authoritative-badge">
+                  Tabuleiro + prêmio selados no servidor
+                </small>
               </div>
 
               <div className="cassava-balance">
@@ -2332,7 +2518,7 @@ function GamesPage({
                         revelada ? 'safe' : ''
                       } ${fatal ? 'danger' : ''}`}
                       key={indice}
-                      disabled={!partida || revelada}
+                      disabled={!partida || revelada || taiMandiocaProcessando}
                       onClick={() => revelarCasa(indice)}
                       aria-label={`Mandioca ${indice + 1}`}
                     >
@@ -2391,7 +2577,7 @@ function GamesPage({
               <button
                 type="button"
                 className="cassava-cashout"
-                disabled={partida.reveladas.length === 0}
+                disabled={partida.reveladas.length === 0 || taiMandiocaProcessando}
                 onClick={recolherPremio}
               >
                 Colher {formatarMoedas(retornoAtual)} TaiCoins
@@ -2524,9 +2710,12 @@ function GamesPage({
                 <button
                   type="button"
                   className="start-cassava-button"
+                  disabled={taiMandiocaProcessando}
                   onClick={iniciarPartida}
                 >
-                  Iniciar colheita
+                  {taiMandiocaProcessando
+                    ? 'Selando plantação...'
+                    : 'Iniciar colheita'}
                 </button>
               )}
             </article>
@@ -2587,11 +2776,14 @@ function GamesPage({
           <div className="taigrinho-machine">
             <div className="taigrinho-machine-header">
               <div>
-                <span>CASSINO DA ENTIDADE</span>
-                <h2>Taigrinho</h2>
+                <span>CASSINO DA NOVA ERA</span>
+                <h2>Taigrinho 2.0</h2>
                 <p>
                   Cinco rolos, cinco linhas e zero dinheiro real.
                 </p>
+                <small className="taigrinho-authoritative-badge">
+                  RNG + prêmio selados no servidor
+                </small>
               </div>
 
               <div className="taigrinho-jackpot">
@@ -2647,7 +2839,7 @@ function GamesPage({
 
                         return (
                           <div
-                            className={`taigrinho-symbol ${
+                            className={`taigrinho-symbol symbol-${simbolo.id} ${
                               vencedor
                                 ? 'winner'
                                 : ''
@@ -2953,7 +3145,7 @@ function GamesPage({
           >
             <div className="regime-crash-header">
               <div>
-                <span>CRASH DO REGIME</span>
+                <span>CRASH DO NOVO REGIME</span>
                 <h2>
                   Retire antes que a Comandante derrube tudo.
                 </h2>
@@ -2961,6 +3153,10 @@ function GamesPage({
                   Multiplicador em tempo real usando somente
                   TaiCoins fictícias.
                 </p>
+
+                <small className="regime-authoritative-badge">
+                  🔒 PONTO DE CONFISCO SELADO NO SERVIDOR
+                </small>
               </div>
 
               <div
@@ -2978,6 +3174,14 @@ function GamesPage({
             <div className="regime-crash-stage">
               <div className="regime-crash-grid" />
 
+              {!crashRodando && !resultadoCrash && (
+                <div className="regime-crash-idle-brief" aria-hidden="true">
+                  <span>PROTOCOLO 00</span>
+                  <strong>Aguardando autorização da Comandante</strong>
+                  <small>O gráfico será liberado assim que a operação começar.</small>
+                </div>
+              )}
+
               <svg
                 className="regime-crash-chart"
                 viewBox="0 0 1000 360"
@@ -2994,15 +3198,15 @@ function GamesPage({
                   >
                     <stop
                       offset="0%"
-                      stopColor="#8e42d9"
+                      stopColor="#b93b50"
                     />
                     <stop
                       offset="70%"
-                      stopColor="#e3569c"
+                      stopColor="#e85f7d"
                     />
                     <stop
                       offset="100%"
-                      stopColor="#ff5d72"
+                      stopColor="#d0a052"
                     />
                   </linearGradient>
 
@@ -3015,12 +3219,12 @@ function GamesPage({
                   >
                     <stop
                       offset="0%"
-                      stopColor="#c54fff"
-                      stopOpacity="0.34"
+                      stopColor="#e85f7d"
+                      stopOpacity="0.30"
                     />
                     <stop
                       offset="100%"
-                      stopColor="#c54fff"
+                      stopColor="#d0a052"
                       stopOpacity="0"
                     />
                   </linearGradient>
@@ -3085,7 +3289,7 @@ function GamesPage({
                   alt="Comandante Taihen"
                 />
 
-                <span>COMANDANTE SUPREMA DA BANCA</span>
+                <span>DITADORA SUPREMA DA BANCA</span>
               </div>
             </div>
 
@@ -3096,7 +3300,7 @@ function GamesPage({
                 <div>
                   <button
                     type="button"
-                    disabled={crashRodando}
+                    disabled={crashRodando || crashProcessando}
                     onClick={() =>
                       setApostaCrash((valor) =>
                         String(
@@ -3116,7 +3320,7 @@ function GamesPage({
                     min={APOSTA_MINIMA_CRASH}
                     max={saldo}
                     value={apostaCrash}
-                    disabled={crashRodando}
+                    disabled={crashRodando || crashProcessando}
                     onChange={(event) =>
                       setApostaCrash(event.target.value)
                     }
@@ -3124,7 +3328,7 @@ function GamesPage({
 
                   <button
                     type="button"
-                    disabled={crashRodando}
+                    disabled={crashRodando || crashProcessando}
                     onClick={() =>
                       setApostaCrash((valor) =>
                         String(
@@ -3142,7 +3346,7 @@ function GamesPage({
                     <button
                       type="button"
                       key={valor}
-                      disabled={crashRodando}
+                      disabled={crashRodando || crashProcessando}
                       onClick={() =>
                         setApostaCrash(String(valor))
                       }
@@ -3158,13 +3362,19 @@ function GamesPage({
                 className={`regime-main-button ${
                   crashRodando ? 'cashout' : ''
                 }`}
+                disabled={crashProcessando}
                 onClick={
                   crashRodando
                     ? () => retirarDoCrash()
                     : () => iniciarRodadaCrash()
                 }
               >
-                {crashRodando ? (
+                {crashProcessando ? (
+                  <>
+                    <span>CONSULTANDO A BANCA...</span>
+                    <strong>Relógio do servidor</strong>
+                  </>
+                ) : crashRodando ? (
                   <>
                     <span>RETIRAR AGORA</span>
                     <strong>
@@ -3324,7 +3534,7 @@ function GamesPage({
                 <div>
                   <button
                     type="button"
-                    disabled={crashRodando}
+                    disabled={crashRodando || crashProcessando}
                     onClick={() =>
                       setOverlayCrash({
                         tipo: 'confiscado',
@@ -3342,7 +3552,7 @@ function GamesPage({
 
                   <button
                     type="button"
-                    disabled={crashRodando}
+                    disabled={crashRodando || crashProcessando}
                     onClick={() =>
                       setOverlayCrash({
                         tipo: 'escapou',

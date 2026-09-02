@@ -592,3 +592,163 @@
   content: '';
   opacity: 0.45;
 }
+
+
+/* ================================================================
+   PHASE 3.8.2a — NEYTAI PALETTE CLEANUP
+   Remove o roxo antigo do botão e dos fundos do assistente.
+   ================================================================ */
+
+.neytai-character-glow {
+  background: rgba(232, 95, 125, 0.19);
+}
+
+.neytai-speech-bubble {
+  border-color: rgba(232, 95, 125, 0.34);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.055),
+      rgba(232, 95, 125, 0.05) 34%,
+      rgba(208, 160, 82, 0.025) 70%
+    ),
+    rgba(18, 14, 18, 0.97);
+  box-shadow:
+    0 27px 75px rgba(0, 0, 0, 0.55),
+    0 0 42px rgba(232, 95, 125, 0.12);
+}
+
+.neytai-bubble-top span {
+  color: var(--tb-pink-soft);
+}
+
+.neytai-bubble-controls small {
+  color: #f0c9cf;
+  border-color: rgba(232, 95, 125, 0.22);
+  background: #24171c;
+}
+
+.neytai-bubble-controls button {
+  color: #e8d7dc;
+  border-color: #4f3942;
+  background: #251b20;
+}
+
+.neytai-message-scroll {
+  scrollbar-color: #9c455a transparent;
+}
+
+.neytai-message-scroll p {
+  color: #ccb9c0;
+}
+
+.neytai-instruction {
+  border-color: rgba(232, 95, 125, 0.22);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(232, 95, 125, 0.12),
+      rgba(208, 160, 82, 0.045)
+    ),
+    rgba(35, 21, 27, 0.76);
+}
+
+.neytai-instruction i {
+  background: var(--tb-pink);
+  box-shadow: 0 0 13px rgba(232, 95, 125, 0.8);
+}
+
+.neytai-instruction span,
+.neytai-tip-list li::before {
+  color: var(--tb-pink-soft);
+}
+
+.neytai-primary-action {
+  color: #fff9f5;
+  border-color: rgba(232, 95, 125, 0.35);
+  background: linear-gradient(
+    135deg,
+    #9e3348,
+    var(--tb-pink) 62%,
+    #d08f4b 120%
+  );
+  box-shadow: 0 10px 24px rgba(185, 59, 80, 0.24);
+}
+
+.neytai-secondary-action,
+.neytai-back-action {
+  color: #e9c8cf;
+  border-color: rgba(232, 95, 125, 0.18);
+  background: #24181d;
+}
+
+.neytai-skip-action {
+  color: #a7939a;
+  border-color: #3f3137;
+  background: #1c1719;
+}
+
+.neytai-bubble-tail {
+  border-right-color: rgba(232, 95, 125, 0.34);
+  border-bottom-color: rgba(232, 95, 125, 0.34);
+  background: #181115;
+}
+
+.neytai-floating-button {
+  border-color: rgba(232, 95, 125, 0.38);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(232, 95, 125, 0.16),
+      rgba(208, 160, 82, 0.055) 56%,
+      transparent 100%
+    ),
+    rgba(19, 14, 18, 0.97);
+  box-shadow:
+    0 15px 38px rgba(0, 0, 0, 0.48),
+    0 0 30px rgba(232, 95, 125, 0.14);
+}
+
+.neytai-floating-button img {
+  border-color: rgba(242, 215, 165, 0.34);
+  background: #24181d;
+}
+
+.neytai-floating-button i {
+  border-color: #18131c;
+  background: var(--tb-pink);
+  box-shadow: 0 0 10px rgba(232, 95, 125, 0.85);
+}
+
+.neytai-tour-focus {
+  outline-color: var(--tb-pink) !important;
+  box-shadow:
+    0 0 0 7px rgba(232, 95, 125, 0.12),
+    0 0 38px rgba(232, 95, 125, 0.42) !important;
+}
+
+.neytai-progress {
+  background: #2b2025;
+}
+
+.neytai-progress > span {
+  background: linear-gradient(
+    90deg,
+    #9c3347,
+    var(--tb-pink),
+    var(--tb-cream)
+  );
+  box-shadow: 0 0 13px rgba(232, 95, 125, 0.35);
+}
+
+.neytai-tip-list li {
+  color: #b7a5ab;
+  border-color: #3a2d32;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(232, 95, 125, 0.05),
+      rgba(255, 255, 255, 0.012)
+    );
+}
+

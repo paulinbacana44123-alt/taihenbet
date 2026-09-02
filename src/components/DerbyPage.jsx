@@ -25,9 +25,8 @@ import videoMatikanetannhauser from '../assets/matikanetannhauser-vitoria.mp4'
 import videoMeishoDoto from '../assets/meisho-doto-vitoria.mp4'
 
 const APOSTA_MINIMA = 10
-const DURACAO_CORRIDA = 7600
 const MAMBO_ID = 'matikanetannhauser'
-const CHANCE_DA_APOSTADA_VENCER = 0.05
+const FINAL_SPRINT_MS = 650
 
 const videosDeVitoria = {
   'silence-suzuka': videoSilenceSuzuka,
@@ -103,61 +102,23 @@ function numeroAleatorio() {
   return numero[0] / 4294967295
 }
 
-function escolherVencedora(corredoraApostadaId) {
-  const corredoraApostada =
-    corredoras.find(
-      (corredora) =>
-        corredora.id === corredoraApostadaId,
-    ) || corredoras[0]
-
-  const mambo =
-    corredoras.find(
-      (corredora) => corredora.id === MAMBO_ID,
-    ) || corredoras[4]
-
-  const apostadaVenceu =
-    numeroAleatorio() <
-    CHANCE_DA_APOSTADA_VENCER
-
-  if (apostadaVenceu) {
-    return corredoraApostada
-  }
-
-  if (corredoraApostada.id !== MAMBO_ID) {
-    return mambo
-  }
-
-  const outrasCorredoras = corredoras.filter(
-    (corredora) => corredora.id !== MAMBO_ID,
-  )
-
-  return outrasCorredoras[
-    Math.floor(
-      numeroAleatorio() *
-        outrasCorredoras.length,
-    )
-  ]
-}
-
 function suavizarProgresso(valor) {
   const limitado = Math.min(1, Math.max(0, valor))
 
   return 1 - (1 - limitado) ** 3
 }
 
-function criarConfiguracaoDaCorrida(vencedoraId) {
+function criarConfiguracaoVisualDaCorrida() {
   return corredoras.reduce((configuracao, corredora, indice) => {
-    const venceu = corredora.id === vencedoraId
-
     configuracao[corredora.id] = {
-      alvo: venceu
-        ? 100
-        : 84 + numeroAleatorio() * 13.5,
+      // Durante a corrida o navegador so cria uma encenacao visual.
+      // Ninguem recebe alvo 100 antes do servidor revelar o resultado.
+      alvo: 89 + numeroAleatorio() * 8.5,
       fase: numeroAleatorio() * Math.PI * 2,
       oscilacao: 2.3 + numeroAleatorio() * 3.2,
       atraso: numeroAleatorio() * 0.08,
-      arrancada:
-        0.42 + numeroAleatorio() * 0.35,
+      arrancada: 0.42 + numeroAleatorio() * 0.35,
+      impulso: 1.6 + numeroAleatorio() * 2.2,
       indice,
     }
 
@@ -165,9 +126,14 @@ function criarConfiguracaoDaCorrida(vencedoraId) {
   }, {})
 }
 
+function obterCorredora(id) {
+  return corredoras.find((corredora) => corredora.id === id) || null
+}
+
 function DerbyPage({
   saldo,
-  onDebitarEntrada,
+  onIniciarCorrida,
+  onConsultarCorrida,
   onFinalizarCorrida,
 }) {
   const [corredoraSelecionadaId, setCorredoraSelecionadaId] =
@@ -248,6 +214,29 @@ function DerbyPage({
     },
     [],
   )
+
+
+  useEffect(() => {
+    let cancelado = false
+
+    async function restaurarCorrida() {
+      const estadoServidor = await onConsultarCorrida?.(null)
+
+      if (cancelado || !estadoServidor?.sessionId) {
+        return
+      }
+
+      prepararCorridaDoServidor(estadoServidor, true)
+    }
+
+    restaurarCorrida()
+
+    return () => {
+      cancelado = true
+    }
+    // A restauracao deve acontecer apenas ao montar o Derby.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function tocarSom(
     referencia,
@@ -422,63 +411,159 @@ function DerbyPage({
     )
   }
 
-  function concluirCorrida(corridaId) {
+  function tempoServidorAgora(corrida) {
+    return Date.now() + (corrida?.serverOffsetMs || 0)
+  }
+
+  function progressoFinalDaOrdem(ordem) {
+    const posicoes = [100, 97.4, 94.8, 92.1, 89.6, 87.2]
+    const final = {}
+
+    ordem.forEach((id, indice) => {
+      final[id] = posicoes[indice] ?? Math.max(82, 100 - indice * 3)
+    })
+
+    corredoras.forEach((corredora) => {
+      if (!Number.isFinite(final[corredora.id])) {
+        final[corredora.id] = 86
+      }
+    })
+
+    return final
+  }
+
+  function finalizarEstadoServidor(estadoServidor, corridaLocal = corridaRef.current) {
+    if (!estadoServidor?.encerrada || !estadoServidor?.winnerRunner) {
+      return false
+    }
+
+    const escolhida =
+      obterCorredora(estadoServidor.selectedRunner) ||
+      corridaLocal?.escolhida ||
+      corredoraSelecionada
+    const vencedoraServidor = obterCorredora(estadoServidor.winnerRunner)
+
+    if (!vencedoraServidor) {
+      setNarracao('O servidor devolveu uma vencedora desconhecida. A banca abriu sindicancia.')
+      return false
+    }
+
+    if (corridaLocal) {
+      corridaLocal.ativa = false
+      corridaLocal.resolvendo = false
+    }
+
+    if (animacaoRef.current) {
+      window.cancelAnimationFrame(animacaoRef.current)
+      animacaoRef.current = null
+    }
+
+    pararSomDaCorrida()
+    tocarSom(audioChegadaRef, { volume: 0.82 })
+
+    const ordemServidor = Array.isArray(estadoServidor.finishOrder)
+      ? estadoServidor.finishOrder.filter((id) => obterCorredora(id))
+      : [vencedoraServidor.id]
+    const ordemCompleta = [
+      vencedoraServidor.id,
+      ...ordemServidor.filter((id) => id !== vencedoraServidor.id),
+      ...corredoras
+        .map((corredora) => corredora.id)
+        .filter((id) => !ordemServidor.includes(id) && id !== vencedoraServidor.id),
+    ]
+
+    setProgressos(progressoFinalDaOrdem(ordemCompleta))
+    setVencedora(vencedoraServidor)
+    setContagem(null)
+    setFase('correndo')
+
+    const ganhou = Boolean(estadoServidor.ganhou)
+    const premio = Math.max(0, Number(estadoServidor.premio) || 0)
+    const valor = Math.max(0, Number(estadoServidor.entrada) || 0)
+    const odd = Number(estadoServidor.selectedOdd) || escolhida.odd
+
+    setCorredoraSelecionadaId(escolhida.id)
+    setValorAposta(String(valor || APOSTA_MINIMA))
+
+    const novoResultado = {
+      ganhou,
+      premio,
+      valor,
+      odd,
+      escolhida,
+      vencedora: vencedoraServidor,
+      roundId: estadoServidor.roundId || estadoServidor.sessionId,
+      finishOrder: ordemCompleta,
+      authoritative: true,
+    }
+
+    setNarracao(
+      ganhou
+        ? `${vencedoraServidor.nome} venceu! O servidor confirmou o seu bilhete.`
+        : `${vencedoraServidor.nome} venceu. O resultado veio selado pela banca.`,
+    )
+
+    const timeout = window.setTimeout(() => {
+      setFase('resultado')
+      setResultado(novoResultado)
+      setVideoVitoriaTerminou(false)
+      setVideoVitoriaFalhou(false)
+      setOverlayAberto(true)
+      tocarSom(ganhou ? audioVitoriaRef : audioDerrotaRef, {
+        volume: ganhou ? 0.74 : 0.68,
+      })
+      onFinalizarCorrida?.({
+        ...estadoServidor,
+        corredoraEscolhida: escolhida,
+        corredoraVencedora: vencedoraServidor,
+        odd,
+      })
+    }, FINAL_SPRINT_MS)
+
+    timeoutsRef.current.push(timeout)
+    return true
+  }
+
+  async function concluirCorrida(corridaId) {
     const corrida = corridaRef.current
 
     if (
       !corrida?.ativa ||
       corrida.id !== corridaId ||
-      corridaIdRef.current !== corridaId
+      corridaIdRef.current !== corridaId ||
+      corrida.resolvendo
     ) {
       return
     }
 
-    corrida.ativa = false
-    animacaoRef.current = null
-    pararSomDaCorrida()
-    tocarSom(audioChegadaRef, {
-      volume: 0.82,
-    })
-    setFase('resultado')
-    setVencedora(corrida.vencedora)
+    corrida.resolvendo = true
+    setNarracao('FOTO DA CHEGADA! A banca esta abrindo o envelope selado do servidor...')
 
-    const ganhou =
-      corrida.escolhida.id ===
-      corrida.vencedora.id
-    const premio = ganhou
-      ? corrida.valor *
-        corrida.escolhida.odd
-      : 0
+    const estadoServidor = await onConsultarCorrida?.(corrida.sessionId)
 
-    const novoResultado = {
-      ganhou,
-      premio,
-      valor: corrida.valor,
-      escolhida: corrida.escolhida,
-      vencedora: corrida.vencedora,
+    if (
+      !corridaRef.current?.ativa ||
+      corridaRef.current.id !== corridaId
+    ) {
+      return
     }
 
-    setResultado(novoResultado)
-    setVideoVitoriaTerminou(false)
-    setVideoVitoriaFalhou(false)
-    setOverlayAberto(true)
+    if (!estadoServidor) {
+      corrida.resolvendo = false
+      setNarracao('A banca perdeu contato com o hipodromo. Tentando validar a chegada novamente...')
+      const retry = window.setTimeout(() => concluirCorrida(corridaId), 650)
+      timeoutsRef.current.push(retry)
+      return
+    }
 
-    setNarracao(
-      ganhou
-        ? `${corrida.vencedora.nome} venceu! Seu bilhete sobreviveu ao Derby.`
-        : `${corrida.vencedora.nome} venceu. A banca ficou com a sua oferenda.`,
-    )
+    if (!estadoServidor.encerrada) {
+      corrida.resolvendo = false
+      const retry = window.setTimeout(() => concluirCorrida(corridaId), 250)
+      timeoutsRef.current.push(retry)
+      return
+    }
 
-    onFinalizarCorrida?.({
-      ganhou,
-      premio,
-      valor: corrida.valor,
-      corredoraEscolhida:
-        corrida.escolhida,
-      corredoraVencedora:
-        corrida.vencedora,
-      odd: corrida.escolhida.odd,
-    })
+    finalizarEstadoServidor(estadoServidor, corrida)
   }
 
   function animarCorrida(agora, corridaId) {
@@ -492,68 +577,47 @@ function DerbyPage({
       return
     }
 
-    if (!corrida.iniciadaEm) {
-      corrida.iniciadaEm = agora
-    }
-
-    const tempoDecorrido =
-      agora - corrida.iniciadaEm
-    const proporcao = Math.min(
-      1,
-      tempoDecorrido / DURACAO_CORRIDA,
+    const servidorAgora = tempoServidorAgora(corrida)
+    const duracaoServidor = Math.max(
+      1000,
+      corrida.raceEndMs - corrida.raceStartMs,
     )
+    const tempoDecorrido = Math.max(0, servidorAgora - corrida.raceStartMs)
+    const proporcao = Math.min(1, tempoDecorrido / duracaoServidor)
 
     atualizarSomDaCorrida(proporcao)
 
     const novosProgressos = {}
 
     corredoras.forEach((corredora) => {
-      const configuracao =
-        corrida.configuracoes[corredora.id]
+      const configuracao = corrida.configuracoes[corredora.id]
       const progressoLocal = Math.max(
         0,
-        (proporcao - configuracao.atraso) /
-          (1 - configuracao.atraso),
+        (proporcao - configuracao.atraso) / (1 - configuracao.atraso),
       )
-      const base =
-        configuracao.alvo *
-        suavizarProgresso(progressoLocal)
+      const base = configuracao.alvo * suavizarProgresso(progressoLocal)
       const oscilacao =
-        Math.sin(
-          progressoLocal * 15 +
-            configuracao.fase,
-        ) *
+        Math.sin(progressoLocal * 15 + configuracao.fase) *
         configuracao.oscilacao *
         (1 - progressoLocal)
       const arrancada =
-        progressoLocal >
-        configuracao.arrancada
+        progressoLocal > configuracao.arrancada
           ? Math.sin(
-              ((progressoLocal -
-                configuracao.arrancada) /
-                (1 -
-                  configuracao.arrancada)) *
+              ((progressoLocal - configuracao.arrancada) /
+                (1 - configuracao.arrancada)) *
                 Math.PI,
-            ) *
-            (corredora.id ===
-            corrida.vencedora.id
-              ? 5.4
-              : 2.2)
+            ) * configuracao.impulso
           : 0
 
-      novosProgressos[corredora.id] =
-        Math.max(
-          0,
-          Math.min(
-            configuracao.alvo,
-            base + oscilacao + arrancada,
-          ),
-        )
+      // O teto de 98 impede que o navegador declare uma vencedora sozinho.
+      novosProgressos[corredora.id] = Math.max(
+        0,
+        Math.min(98, base + oscilacao + arrancada),
+      )
     })
 
     const deveAtualizarVisual =
-      proporcao >= 1 ||
-      agora - ultimoFrameVisualRef.current >= 32
+      proporcao >= 1 || agora - ultimoFrameVisualRef.current >= 32
 
     if (deveAtualizarVisual) {
       ultimoFrameVisualRef.current = agora
@@ -564,14 +628,8 @@ function DerbyPage({
       novosProgressos[MAMBO_ID] >=
       Math.max(
         ...corredoras
-          .filter(
-            (corredora) =>
-              corredora.id !== MAMBO_ID,
-          )
-          .map(
-            (corredora) =>
-              novosProgressos[corredora.id],
-          ),
+          .filter((corredora) => corredora.id !== MAMBO_ID)
+          .map((corredora) => novosProgressos[corredora.id]),
       )
 
     if (
@@ -585,36 +643,23 @@ function DerbyPage({
         volume: 0.72,
         playbackRate: 1.04,
       })
-
-      setNarracao(
-        'PROTOCOLO MAMBO ATIVADO! MATIKANETANNHAUSER ESTÁ TOMANDO A CORRIDA!',
-      )
+      setNarracao('PROTOCOLO MAMBO ATIVADO! O front-end esta fazendo teatro, mas o resultado segue lacrado!')
     } else {
-      atualizarNarracao(
-        novosProgressos,
-        tempoDecorrido,
-      )
+      atualizarNarracao(novosProgressos, tempoDecorrido)
     }
 
     if (proporcao >= 1) {
-      const progressoFinal = {
-        ...novosProgressos,
-        [corrida.vencedora.id]: 100,
-      }
-
-      setProgressos(progressoFinal)
+      setProgressos(novosProgressos)
       concluirCorrida(corridaId)
       return
     }
 
-    animacaoRef.current =
-      window.requestAnimationFrame(
-        (timestamp) =>
-          animarCorrida(timestamp, corridaId),
-      )
+    animacaoRef.current = window.requestAnimationFrame((timestamp) =>
+      animarCorrida(timestamp, corridaId),
+    )
   }
 
-  function iniciarAnimacaoDaCorrida(corridaId) {
+  function iniciarAnimacaoDaCorrida(corridaId, restaurada = false) {
     const corrida = corridaRef.current
 
     if (
@@ -625,131 +670,158 @@ function DerbyPage({
       return
     }
 
-    corrida.iniciadaEm = performance.now()
     ultimoFrameVisualRef.current = 0
-
     setFase('correndo')
-    setContagem('JÁ!')
-    tocarSom(audioContagemRef, {
-      volume: 0.65,
-      playbackRate: 1.45,
-    })
+    setContagem(restaurada ? null : 'JA!')
     iniciarSomDaCorrida()
     setNarracao(
-      'LARGARAM! O Taihen Derby está oficialmente fora de controle!',
+      restaurada
+        ? 'Corrida restaurada do servidor. O resultado continua escondido.'
+        : 'LARGARAM! O servidor ja selou o resultado, mas o navegador ainda nao sabe qual e.',
     )
 
-    const timeout = window.setTimeout(() => {
-      setContagem(null)
-    }, 650)
+    if (!restaurada) {
+      tocarSom(audioContagemRef, {
+        volume: 0.65,
+        playbackRate: 1.45,
+      })
+      const timeout = window.setTimeout(() => setContagem(null), 650)
+      timeoutsRef.current.push(timeout)
+    }
 
-    timeoutsRef.current.push(timeout)
-
-    animacaoRef.current =
-      window.requestAnimationFrame(
-        (timestamp) =>
-          animarCorrida(timestamp, corridaId),
-      )
+    animacaoRef.current = window.requestAnimationFrame((timestamp) =>
+      animarCorrida(timestamp, corridaId),
+    )
   }
 
-  function iniciarCorrida() {
-    if (corridaEmAndamento) {
-      return
-    }
+  function acompanharContagemServidor(corridaId, restaurada = false) {
+    const corrida = corridaRef.current
 
     if (
-      !Number.isFinite(valorNumerico) ||
-      valorNumerico < APOSTA_MINIMA
+      !corrida?.ativa ||
+      corrida.id !== corridaId ||
+      corridaIdRef.current !== corridaId
     ) {
-      setNarracao(
-        `A entrada mínima é de ${APOSTA_MINIMA} TaiCoins.`,
-      )
       return
     }
 
-    if (valorNumerico > saldo) {
-      setNarracao(
-        'Você não possui TaiCoins suficientes para esse bilhete.',
-      )
+    const restante = corrida.raceStartMs - tempoServidorAgora(corrida)
+
+    if (restante <= 0) {
+      iniciarAnimacaoDaCorrida(corridaId, restaurada)
       return
     }
 
-    const debitou =
-      onDebitarEntrada?.(valorNumerico)
+    const numero = restante > 1700 ? 3 : restante > 850 ? 2 : 1
+    setFase('contagem')
+    setContagem(numero)
 
-    if (!debitou) {
-      return
+    const timeout = window.setTimeout(
+      () => acompanharContagemServidor(corridaId, restaurada),
+      Math.min(140, Math.max(45, restante)),
+    )
+    timeoutsRef.current.push(timeout)
+  }
+
+  function prepararCorridaDoServidor(estadoServidor, restaurada = false) {
+    if (!estadoServidor?.sessionId) {
+      return false
+    }
+
+    if (estadoServidor.encerrada) {
+      return finalizarEstadoServidor(estadoServidor, null)
+    }
+
+    const escolhida =
+      obterCorredora(estadoServidor.selectedRunner) || corredoraSelecionada
+    const serverNowMs = Date.parse(estadoServidor.serverNow)
+    const raceStartMs = Date.parse(estadoServidor.raceStartsAt)
+    const raceEndMs = Date.parse(estadoServidor.raceEndsAt)
+
+    if (!Number.isFinite(raceStartMs) || !Number.isFinite(raceEndMs)) {
+      setNarracao('A banca recebeu um relogio de corrida invalido do servidor.')
+      return false
     }
 
     limparTemporizadores()
-
     prepararSomDaCorrida()
-    tocarSom(audioContagemRef, {
-      volume: 0.58,
-    })
 
-    const corridaId =
-      corridaIdRef.current
-
-    const vencedoraSorteada =
-      escolherVencedora(
-        corredoraSelecionada.id,
-      )
-    const configuracoes =
-      criarConfiguracaoDaCorrida(
-        vencedoraSorteada.id,
-      )
+    const corridaId = corridaIdRef.current
+    const offset = Number.isFinite(serverNowMs) ? serverNowMs - Date.now() : 0
 
     corridaRef.current = {
       id: corridaId,
+      sessionId: estadoServidor.sessionId,
       ativa: true,
-      valor: valorNumerico,
-      escolhida: corredoraSelecionada,
-      vencedora: vencedoraSorteada,
-      configuracoes,
-      iniciadaEm: null,
+      resolvendo: false,
+      valor: Math.max(0, Number(estadoServidor.entrada) || 0),
+      escolhida,
+      configuracoes: criarConfiguracaoVisualDaCorrida(),
+      raceStartMs,
+      raceEndMs,
+      serverOffsetMs: offset,
       mamboAlertaTocado: false,
     }
 
     ultimaNarracaoRef.current = 0
+    setCorredoraSelecionadaId(escolhida.id)
+    setValorAposta(String(Number(estadoServidor.entrada) || APOSTA_MINIMA))
     setProgressos(
-      Object.fromEntries(
-        corredoras.map((corredora) => [
-          corredora.id,
-          0,
-        ]),
-      ),
+      Object.fromEntries(corredoras.map((corredora) => [corredora.id, 0])),
     )
     setVencedora(null)
     setResultado(null)
     setOverlayAberto(false)
     setMamboAlertaTocado(false)
-    setFase('contagem')
-    setContagem(3)
-    setNarracao(
-      `Bilhete confirmado em ${corredoraSelecionada.nome}. Preparando a largada...`,
+    setVideoVitoriaTerminou(false)
+    setVideoVitoriaFalhou(false)
+
+    const agoraServidor = tempoServidorAgora(corridaRef.current)
+
+    if (agoraServidor >= raceEndMs) {
+      setFase('correndo')
+      concluirCorrida(corridaId)
+    } else if (agoraServidor >= raceStartMs) {
+      iniciarAnimacaoDaCorrida(corridaId, true)
+    } else {
+      setNarracao(
+        restaurada
+          ? `Bilhete restaurado em ${escolhida.nome}. A largada segue o relogio do servidor.`
+          : `Bilhete selado em ${escolhida.nome}. Preparando a largada...`,
+      )
+      acompanharContagemServidor(corridaId, restaurada)
+    }
+
+    return true
+  }
+
+  async function iniciarCorrida() {
+    if (corridaEmAndamento) {
+      return
+    }
+
+    if (!Number.isFinite(valorNumerico) || valorNumerico < APOSTA_MINIMA) {
+      setNarracao(`A entrada minima e de ${APOSTA_MINIMA} TaiCoins.`)
+      return
+    }
+
+    if (valorNumerico > saldo) {
+      setNarracao('Voce nao possui TaiCoins suficientes para esse bilhete.')
+      return
+    }
+
+    setNarracao('Enviando o bilhete para ser selado no servidor...')
+
+    const estadoServidor = await onIniciarCorrida?.(
+      valorNumerico,
+      corredoraSelecionada.id,
     )
 
-    ;[2, 1].forEach((numero, indice) => {
-      const timeout = window.setTimeout(() => {
-        setContagem(numero)
-        tocarSom(audioContagemRef, {
-          volume: 0.58,
-          playbackRate:
-            numero === 1 ? 1.12 : 1.04,
-        })
-      }, (indice + 1) * 850)
+    if (!estadoServidor) {
+      return
+    }
 
-      timeoutsRef.current.push(timeout)
-    })
-
-    const largada = window.setTimeout(
-      () =>
-        iniciarAnimacaoDaCorrida(corridaId),
-      2550,
-    )
-
-    timeoutsRef.current.push(largada)
+    prepararCorridaDoServidor(estadoServidor, estadoServidor.evento === 'resume')
   }
 
   function prepararNovaCorrida() {
@@ -924,6 +996,11 @@ function DerbyPage({
           <div className="derby-fairness">
             <span>PARÓDIA SEM DINHEIRO REAL</span>
             <strong>6 corredoras · 1 vencedora</strong>
+          </div>
+
+          <div className="derby-authoritative-badge">
+            <i />
+            RESULTADO + PAGAMENTO SELADOS NO SERVIDOR
           </div>
 
           <div className="derby-mambo-protocol">

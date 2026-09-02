@@ -1,0 +1,482 @@
+.taishop-page {
+  width: min(1144px, calc(100% - 38px));
+  margin: 28px auto 68px;
+  color: #f8efeb;
+}
+
+.taishop-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, .55fr);
+  gap: 22px;
+  align-items: stretch;
+  padding: 34px;
+  overflow: hidden;
+  border: 1px solid #4b2938;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 85% 10%, rgba(255, 73, 137, .17), transparent 30%),
+    radial-gradient(circle at 0% 100%, rgba(255, 178, 92, .08), transparent 31%),
+    linear-gradient(145deg, #211219, #100c0e 72%);
+  box-shadow: 0 28px 84px rgba(0,0,0,.28);
+}
+
+.taishop-hero > div > span,
+.taishop-state > span {
+  color: #ff568f;
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: 1.35px;
+}
+
+.taishop-hero h1 {
+  max-width: 760px;
+  margin: 10px 0 12px;
+  color: #fff6ef;
+  font-size: clamp(37px, 5.4vw, 66px);
+  line-height: .95;
+  letter-spacing: -2.5px;
+}
+
+.taishop-hero p {
+  max-width: 700px;
+  margin: 0;
+  color: #b9aab1;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.taishop-wallet-card {
+  display: flex;
+  min-height: 160px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px;
+  border: 1px solid #4b2b39;
+  border-radius: 18px;
+  background: rgba(17, 11, 14, .72);
+}
+
+.taishop-wallet-card small {
+  color: #ff649b;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.taishop-wallet-card strong {
+  display: block;
+  margin: 7px 0 5px;
+  color: #fff4d5;
+  font-size: 30px;
+}
+
+.taishop-wallet-card span {
+  color: #8f8188;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.taishop-wallet-card button {
+  margin-top: 14px;
+  padding: 10px 13px;
+  border: 0;
+  border-radius: 10px;
+  background: #ed4784;
+  color: #fff;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.taishop-notice {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  align-items: center;
+  margin-top: 15px;
+  padding: 13px 16px;
+  border: 1px solid #4b3040;
+  border-radius: 12px;
+  background: #1a1116;
+  color: #eadbe2;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.taishop-notice.sucesso { border-color: rgba(89, 185, 110, .4); }
+.taishop-notice.erro { border-color: rgba(255, 84, 133, .48); color: #ffb1c7; }
+.taishop-notice button { border: 0; background: transparent; color: inherit; font-size: 18px; cursor: pointer; }
+
+.taishop-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin: 20px 0 14px;
+}
+
+.taishop-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.taishop-tabs button,
+.taishop-profile-link {
+  padding: 9px 12px;
+  border: 1px solid #372b31;
+  border-radius: 10px;
+  background: #151013;
+  color: #9c9096;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.taishop-tabs button:hover,
+.taishop-tabs button.active,
+.taishop-profile-link:hover {
+  border-color: #75354f;
+  color: #fff;
+  background: #2a1720;
+}
+
+.taishop-profile-link { color: #ff77a7; }
+
+.taishop-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.taishop-item {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #382b31;
+  border-radius: 18px;
+  background: #161013;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.taishop-item:hover {
+  transform: translateY(-2px);
+  border-color: #613145;
+  box-shadow: 0 18px 42px rgba(0,0,0,.2);
+}
+
+.taishop-item.is-equipped {
+  border-color: #c24776;
+  box-shadow: inset 0 0 0 1px rgba(240, 73, 135, .13);
+}
+
+.taishop-preview {
+  position: relative;
+  height: 168px;
+  overflow: hidden;
+  border-bottom: 1px solid #33272d;
+  background: #100c0e;
+}
+
+.taishop-preview-frame {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255,255,255,.05), transparent 35%),
+    linear-gradient(145deg, #1b1115, #0e0b0d);
+}
+
+.taishop-avatar-preview {
+  width: 94px;
+  height: 94px;
+  overflow: hidden;
+  border: 3px solid #ede4e1;
+  border-radius: 50%;
+  background: #181013;
+}
+.taishop-avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+.taishop-avatar-preview > strong { display: grid; width: 100%; height: 100%; place-items: center; color: #ff78aa; font-size: 28px; }
+.taishop-preview-frame > span { position: absolute; right: 17px; bottom: 13px; color: #8e7f86; font-size: 10px; font-weight: 900; }
+
+.taishop-preview-frame.cosmetic-frame-oracle .taishop-avatar-preview {
+  border-color: #ff74aa;
+  box-shadow: 0 0 0 5px rgba(255, 82, 148, .13), 0 0 27px rgba(255, 67, 138, .36);
+}
+.taishop-preview-frame.cosmetic-frame-bankrupt .taishop-avatar-preview {
+  border-color: #ff556f;
+  box-shadow: 0 0 0 5px rgba(113, 20, 37, .35), 0 0 32px rgba(255, 43, 81, .26);
+}
+.taishop-preview-frame.cosmetic-frame-mambo .taishop-avatar-preview {
+  border-color: #b58cff;
+  box-shadow: 0 0 0 3px rgba(74, 231, 255, .26), 0 0 0 7px rgba(181, 140, 255, .12), 0 0 30px rgba(77, 220, 255, .22);
+}
+
+.taishop-preview-name {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(circle at 20% 30%, rgba(255,255,255,.045), transparent 35%), #100c0e;
+}
+.taishop-preview-name small { color: #71656b; font-size: 8px; font-weight: 900; letter-spacing: 1px; }
+.taishop-preview-name strong { margin-top: 8px; font-size: 27px; line-height: 1; }
+.taishop-preview-name span { margin-top: 8px; color: #70636a; font-size: 10px; font-weight: 900; }
+.taishop-preview-name.cosmetic-name-oracle strong { color: #ff6ea6; text-shadow: 0 0 18px rgba(255,77,145,.25); }
+.taishop-preview-name.cosmetic-name-gold strong { color: #ffd777; text-shadow: 0 0 18px rgba(255,205,86,.20); }
+.taishop-preview-name.cosmetic-name-profit strong { color: #87e69c; text-shadow: 0 0 18px rgba(91,222,117,.18); }
+
+.taishop-preview-effect {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  isolation: isolate;
+  background: #110d0f;
+}
+.taishop-preview-effect small { position: relative; z-index: 2; color: #85767d; font-size: 8px; font-weight: 900; letter-spacing: 1px; }
+.taishop-preview-effect strong { position: relative; z-index: 2; margin-top: 8px; color: #fff; font-size: 31px; }
+.taishop-preview-effect i { position: absolute; inset: 0; }
+.taishop-preview-effect.cosmetic-effect-crt i {
+  background: repeating-linear-gradient(0deg, transparent 0 5px, rgba(255, 92, 151, .09) 5px 6px), radial-gradient(circle at center, rgba(255,75,139,.13), transparent 52%);
+}
+.taishop-preview-effect.cosmetic-effect-bankrupt i {
+  background: radial-gradient(circle at 50% 55%, rgba(255, 45, 86, .28), transparent 32%), radial-gradient(circle at 20% 15%, rgba(255, 106, 143, .12), transparent 25%);
+}
+.taishop-preview-effect.cosmetic-effect-neon i {
+  background: linear-gradient(115deg, rgba(78, 222, 255, .13), transparent 35%, rgba(193, 102, 255, .18) 70%, transparent), radial-gradient(circle at 50% 50%, rgba(255, 79, 141, .12), transparent 48%);
+}
+
+.taishop-preview-badge {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  background: radial-gradient(circle at center, rgba(255, 73, 137, .07), transparent 45%), #100c0e;
+}
+.taishop-preview-badge span {
+  display: grid;
+  min-width: 52px;
+  height: 52px;
+  padding: 0 8px;
+  place-items: center;
+  border: 1px solid #663147;
+  border-radius: 15px;
+  background: #351c27;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 950;
+}
+.taishop-preview-badge strong { font-size: 10px; letter-spacing: 1px; }
+.taishop-preview-badge.cosmetic-badge-rat strong { color: #ff8db5; }
+.taishop-preview-badge.cosmetic-badge-ruin strong { color: #c4a1ff; }
+.taishop-preview-badge.cosmetic-badge-bank-asset strong { color: #ffd475; }
+
+.taishop-item-copy { flex: 1; padding: 18px 18px 13px; }
+.taishop-item-meta { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.taishop-item-meta span { color: #ff6b9f; font-size: 8px; font-weight: 950; letter-spacing: .85px; text-transform: uppercase; }
+.taishop-item-meta small { color: #73676d; font-size: 8px; font-weight: 750; }
+.taishop-item h2 { margin: 8px 0 7px; color: #fff6f0; font-size: 20px; }
+.taishop-item p { margin: 0; color: #9e9097; font-size: 11px; line-height: 1.55; }
+
+.taishop-item-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 18px 18px;
+}
+.taishop-item-footer > strong { display: flex; align-items: center; gap: 6px; color: #fff1c8; font-size: 18px; }
+.taishop-item-footer > strong i { display: grid; width: 20px; height: 20px; place-items: center; border-radius: 50%; background: #d8a94e; color: #281b0a; font-size: 10px; font-style: normal; }
+.taishop-item-footer button {
+  min-width: 116px;
+  padding: 10px 11px;
+  border: 0;
+  border-radius: 10px;
+  background: #ed4784;
+  color: #fff;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.taishop-item-footer button.secondary { background: #332b2f; }
+.taishop-item-footer button:disabled { opacity: .42; cursor: not-allowed; }
+
+.taishop-equipped-tag {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 4;
+  padding: 5px 7px;
+  border: 1px solid rgba(255, 105, 159, .35);
+  border-radius: 999px;
+  background: rgba(20, 11, 15, .86);
+  color: #ff79aa;
+  font-size: 7px;
+  font-weight: 950;
+  letter-spacing: .8px;
+}
+
+.taishop-state,
+.taishop-disclaimer {
+  padding: 30px;
+  border: 1px solid #35292f;
+  border-radius: 18px;
+  background: #151013;
+  text-align: center;
+}
+.taishop-state h2 { margin: 8px 0 0; }
+.taishop-disclaimer { margin-top: 16px; text-align: left; }
+.taishop-disclaimer strong { color: #ff5e99; font-size: 9px; letter-spacing: 1px; }
+.taishop-disclaimer p { margin: 7px 0 0; color: #82767c; font-size: 10px; line-height: 1.55; }
+
+@media (max-width: 980px) {
+  .taishop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .taishop-hero { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 680px) {
+  .taishop-page { width: min(100% - 22px, 1144px); }
+  .taishop-hero { padding: 24px; }
+  .taishop-toolbar { align-items: stretch; flex-direction: column; }
+  .taishop-grid { grid-template-columns: 1fr; }
+  .taishop-profile-link { align-self: flex-start; }
+}
+
+/* ================================================================
+   FASE 3.24 — CÓDIGOS DA BANCA
+   ================================================================ */
+.taishop-promo-vault {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr);
+  gap: 18px;
+  margin-top: 18px;
+  padding: 22px;
+  border: 1px solid #4b2d3b;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(255, 77, 139, .1), transparent 32%),
+    linear-gradient(135deg, #1a1015, #110d0f);
+}
+
+.taishop-promo-copy > span {
+  color: #ff5d95;
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: 1.2px;
+}
+
+.taishop-promo-copy h2 {
+  margin: 7px 0 8px;
+  color: #fff5ee;
+  font-size: 23px;
+}
+
+.taishop-promo-copy p {
+  margin: 0;
+  max-width: 640px;
+  color: #9f8f96;
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.taishop-promo-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 9px;
+}
+
+.taishop-promo-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.taishop-promo-input-row input {
+  min-width: 0;
+  padding: 12px 13px;
+  border: 1px solid #3f3037;
+  border-radius: 11px;
+  outline: none;
+  background: #0d0a0c;
+  color: #fff7f2;
+  font: inherit;
+  font-size: 11px;
+}
+
+.taishop-promo-input-row input:focus {
+  border-color: #e94780;
+  box-shadow: 0 0 0 3px rgba(233, 71, 128, .08);
+}
+
+.taishop-promo-input-row button,
+.taishop-promo-login {
+  padding: 11px 15px;
+  border: 1px solid #e94780;
+  border-radius: 11px;
+  background: #e94780;
+  color: #fff;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.taishop-promo-input-row button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.taishop-promo-form > small {
+  color: #75686e;
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.taishop-promo-history {
+  grid-column: 1 / -1;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,.065);
+}
+
+.taishop-promo-history > strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #806e76;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+
+.taishop-promo-history > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.taishop-promo-history span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border: 1px solid #352a2f;
+  border-radius: 9px;
+  background: rgba(255,255,255,.02);
+  font-size: 9px;
+}
+
+.taishop-promo-history b { color: #d9c6ce; }
+.taishop-promo-history em { color: #80d994; font-style: normal; font-weight: 950; }
+.taishop-promo-history em.negative { color: #ff779f; }
+
+@media (max-width: 760px) {
+  .taishop-promo-vault { grid-template-columns: 1fr; }
+  .taishop-promo-history { grid-column: auto; }
+}
+
+@media (max-width: 480px) {
+  .taishop-promo-input-row { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,462 @@
+.wallet-admin-page {
+  display: grid;
+  gap: 18px;
+}
+
+.wallet-admin-hero,
+.wallet-admin-users,
+.wallet-admin-form {
+  border: 1px solid #39262f;
+  border-radius: 16px;
+  background: #151014;
+}
+
+.wallet-admin-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 88% 20%, rgba(222, 168, 77, 0.1), transparent 27%),
+    linear-gradient(130deg, rgba(226, 78, 112, 0.08), transparent 45%),
+    #151014;
+}
+
+.wallet-admin-hero > div:first-child > span,
+.wallet-admin-title-row span,
+.wallet-admin-selected span {
+  color: #f28ba7;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.wallet-admin-hero h2,
+.wallet-admin-title-row h3 {
+  margin: 6px 0 0;
+}
+
+.wallet-admin-hero h2 {
+  font-size: 25px;
+}
+
+.wallet-admin-hero p {
+  max-width: 720px;
+  margin: 9px 0 0;
+  color: #9c8d95;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.wallet-admin-hero p strong {
+  color: #e6c587;
+}
+
+.wallet-admin-seal {
+  display: grid;
+  min-width: 145px;
+  padding: 18px;
+  place-items: center;
+  border: 1px solid rgba(221, 169, 77, 0.34);
+  border-radius: 13px;
+  background: rgba(221, 169, 77, 0.07);
+  text-align: center;
+}
+
+.wallet-admin-seal strong {
+  color: #f3d08a;
+  font-size: 27px;
+}
+
+.wallet-admin-seal span {
+  margin-top: 2px;
+  color: #8f7b72;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.wallet-admin-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.85fr) minmax(0, 1.15fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.wallet-admin-users,
+.wallet-admin-form {
+  padding: 20px;
+}
+
+.wallet-admin-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.wallet-admin-title-row h3 {
+  font-size: 18px;
+}
+
+.wallet-admin-title-row button {
+  padding: 8px 10px;
+  color: #d7b97c;
+  border: 1px solid rgba(215, 185, 124, 0.25);
+  border-radius: 8px;
+  background: rgba(215, 185, 124, 0.05);
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.wallet-admin-user-list {
+  display: grid;
+  gap: 8px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.wallet-admin-user {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 11px;
+  align-items: center;
+  width: 100%;
+  padding: 10px;
+  color: #fff;
+  border: 1px solid #34272e;
+  border-radius: 11px;
+  background: #1b1519;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wallet-admin-user:hover,
+.wallet-admin-user.active {
+  border-color: #d44e72;
+  background: rgba(212, 78, 114, 0.09);
+}
+
+.wallet-admin-user.active {
+  box-shadow: inset 3px 0 #e55b7f;
+}
+
+.wallet-admin-user img,
+.wallet-admin-selected img {
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+  border: 1px solid #704151;
+  border-radius: 10px;
+  background: #24171e;
+}
+
+.wallet-admin-user > span,
+.wallet-admin-selected > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.wallet-admin-user strong {
+  overflow: hidden;
+  font-size: 11px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wallet-admin-user small {
+  color: #7d6b74;
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.wallet-admin-user b {
+  color: #f0cf8b;
+  font-size: 11px;
+}
+
+.wallet-admin-selected {
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 17px;
+  padding: 13px;
+  border: 1px solid #422a35;
+  border-radius: 12px;
+  background: linear-gradient(120deg, rgba(219, 80, 115, 0.1), rgba(220, 169, 79, 0.05));
+}
+
+.wallet-admin-selected img {
+  width: 50px;
+  height: 50px;
+}
+
+.wallet-admin-selected strong {
+  font-size: 15px;
+}
+
+.wallet-admin-selected b {
+  color: #f4d28e;
+  font-size: 16px;
+}
+
+.wallet-admin-field {
+  display: grid;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.wallet-admin-field > span {
+  color: #a6909a;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.wallet-admin-input-wrap {
+  position: relative;
+}
+
+.wallet-admin-field input,
+.wallet-admin-field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  color: #fff;
+  border: 1px solid #3a2d34;
+  border-radius: 10px;
+  outline: 0;
+  background: #100c0f;
+  font: inherit;
+  font-size: 12px;
+}
+
+.wallet-admin-field input {
+  padding-right: 42px;
+}
+
+.wallet-admin-field textarea {
+  resize: vertical;
+}
+
+.wallet-admin-field input:focus,
+.wallet-admin-field textarea:focus {
+  border-color: #d95074;
+  box-shadow: 0 0 0 3px rgba(217, 80, 116, 0.08);
+}
+
+.wallet-admin-input-wrap em {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  color: #d8b970;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+  transform: translateY(-50%);
+}
+
+.wallet-admin-preview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.wallet-admin-preview article {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border: 1px solid #33272d;
+  border-radius: 10px;
+  background: #1a1418;
+}
+
+.wallet-admin-preview span {
+  color: #75656d;
+  font-size: 7px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.wallet-admin-preview strong {
+  color: #e8d7df;
+  font-size: 12px;
+}
+
+.wallet-admin-preview .positive strong {
+  color: #57d98b;
+}
+
+.wallet-admin-preview .negative strong {
+  color: #ff718d;
+}
+
+.wallet-admin-submit {
+  width: 100%;
+  margin-top: 16px;
+  padding: 13px;
+  color: #fff;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #cc405f, #e8678b);
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.wallet-admin-submit:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+  opacity: 0.42;
+}
+
+.wallet-admin-footnote {
+  margin: 10px 0 0;
+  color: #77676f;
+  font-size: 9px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.wallet-admin-footnote strong {
+  color: #e1c27f;
+}
+
+.wallet-admin-message {
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.wallet-admin-message.error {
+  color: #ff9cb0;
+  border: 1px solid rgba(255, 91, 124, 0.3);
+  background: rgba(255, 91, 124, 0.08);
+}
+
+.wallet-admin-message.success {
+  color: #8bf0af;
+  border: 1px solid rgba(72, 213, 124, 0.3);
+  background: rgba(72, 213, 124, 0.08);
+}
+
+.wallet-admin-empty {
+  padding: 20px;
+  color: #806d76;
+  border: 1px dashed #3b2e34;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 10px;
+}
+
+@media (max-width: 900px) {
+  .wallet-admin-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .wallet-admin-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 560px) {
+  .wallet-admin-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .wallet-admin-user {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .wallet-admin-user b {
+    grid-column: 2;
+  }
+}
+
+/* ================================================================
+   FASE 3.13 — EXCLUSÃO ADMINISTRATIVA DE CONTAS
+   ================================================================ */
+
+.wallet-admin-danger-zone {
+  display: grid;
+  gap: 13px;
+  margin-top: 22px;
+  padding: 16px;
+  border: 1px solid rgba(255, 82, 111, 0.3);
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgba(168, 31, 58, 0.12), transparent 58%),
+    #140d11;
+}
+
+.wallet-admin-danger-zone > div:first-child > span {
+  color: #ff718d;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1.15px;
+}
+
+.wallet-admin-danger-zone h4 {
+  margin: 5px 0 6px;
+  color: #f3e7eb;
+  font-size: 15px;
+}
+
+.wallet-admin-danger-zone p {
+  margin: 0;
+  color: #8e747e;
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.wallet-admin-delete-account {
+  width: 100%;
+  padding: 12px 14px;
+  color: #ff9db0;
+  border: 1px solid rgba(255, 77, 111, 0.45);
+  border-radius: 10px;
+  background: rgba(165, 28, 55, 0.12);
+  font-size: 9px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.wallet-admin-delete-account:hover:not(:disabled) {
+  color: #fff;
+  border-color: #ff5577;
+  background: rgba(207, 43, 76, 0.27);
+  box-shadow: 0 0 18px rgba(207, 43, 76, 0.11);
+}
+
+.wallet-admin-delete-account:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.wallet-admin-self-protected {
+  display: grid;
+  gap: 4px;
+  padding: 11px 12px;
+  border: 1px solid rgba(218, 173, 85, 0.25);
+  border-radius: 9px;
+  background: rgba(218, 173, 85, 0.06);
+}
+
+.wallet-admin-self-protected strong {
+  color: #e5c87f;
+  font-size: 8px;
+  letter-spacing: 0.8px;
+}
+
+.wallet-admin-self-protected span {
+  color: #89765f;
+  font-size: 8px;
+  line-height: 1.4;
+}

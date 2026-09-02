@@ -11,7 +11,27 @@ import GamesPage from './components/GamesPage'
 import SportsHome from './components/SportsHome'
 import MuseumPage from './components/MuseumPage'
 import FinalMessagePage from './components/FinalMessagePage'
+import CreatorMessagePage from './components/CreatorMessagePage'
+import GroupPage from './components/GroupPage'
 import NeytaiAssistant from './components/NeytaiAssistant'
+import AuthModal from './components/AuthModal'
+import AccountMenu from './components/AccountMenu'
+import AccountSuspensionNotice from './components/AccountSuspensionNotice'
+import ProfileModal from './components/ProfileModal'
+import LegacyBalanceModal from './components/LegacyBalanceModal'
+import LegacyHistoryModal from './components/LegacyHistoryModal'
+import HistoryPage from './components/HistoryPage'
+import ProgressionPage from './components/ProgressionPage'
+import PublicProfilePage from './components/PublicProfilePage'
+import NotificationCenter from './components/NotificationCenter'
+import TaiShopPage from './components/TaiShopPage'
+import MissionPage from './components/MissionPage'
+import EventSeasonPage from './components/EventSeasonPage'
+import CommunityFeedPage from './components/CommunityFeedPage'
+import { supabase } from './lib/supabase'
+import { useSiteTexts } from './hooks/useEditableContent'
+import './TaihenTheme2026.css'
+import './HeaderLayoutHotfix.css'
 import { gerarRodadaBahrein } from './data/bahrainLeague'
 import entidadeBanca from './assets/entidade-banca.png'
 import videoFalencia from './assets/zero-taicoins.mp4'
@@ -24,6 +44,94 @@ const anunciosRecompensados = [
 ]
 
 const VERSAO_LIGA_BAHREIN = 'bahrain-league-v1'
+const CREATOR_MESSAGE_UNLOCK_KEY = 'taihenbet-creator-message-unlocked-v1'
+
+
+function numeroEstatistica(valor) {
+  const convertido = Number(valor)
+  return Number.isFinite(convertido) ? convertido : 0
+}
+
+function calcularSnapshotPerfilPublico(sports = [], games = []) {
+  const esportes = Array.isArray(sports) ? sports : []
+  const jogos = Array.isArray(games) ? games : []
+  const liquidadosEsporte = esportes.filter((item) =>
+    ['Ganhou', 'Perdeu'].includes(item?.status),
+  )
+
+  const vitoriasEsporte = liquidadosEsporte.filter(
+    (item) => item.status === 'Ganhou',
+  ).length
+  const derrotasEsporte = liquidadosEsporte.filter(
+    (item) => item.status === 'Perdeu',
+  ).length
+  const vitoriasJogos = jogos.filter(
+    (item) => item?.status === 'Ganhou',
+  ).length
+  const derrotasJogos = jogos.filter(
+    (item) => item?.status && item.status !== 'Ganhou',
+  ).length
+
+  const resultadosFinanceiros = []
+
+  liquidadosEsporte.forEach((item) => {
+    const entrada = numeroEstatistica(item.valor)
+    const retorno =
+      item.status === 'Ganhou'
+        ? numeroEstatistica(item.retornoPago ?? item.retornoEstimado)
+        : 0
+    resultadosFinanceiros.push(retorno - entrada)
+  })
+
+  jogos.forEach((item) => {
+    const lucroCalculado = Number(item?.lucro)
+    resultadosFinanceiros.push(
+      Number.isFinite(lucroCalculado)
+        ? lucroCalculado
+        : numeroEstatistica(item?.premio) - numeroEstatistica(item?.entrada),
+    )
+  })
+
+  const totalApostadoEsportes = esportes.reduce(
+    (total, item) => total + numeroEstatistica(item?.valor),
+    0,
+  )
+  const totalApostadoJogos = jogos.reduce(
+    (total, item) => total + numeroEstatistica(item?.entrada),
+    0,
+  )
+  const totalPagoEsportes = esportes.reduce(
+    (total, item) =>
+      total +
+      (item?.status === 'Ganhou'
+        ? numeroEstatistica(item?.retornoPago ?? item?.retornoEstimado)
+        : 0),
+    0,
+  )
+  const totalPagoJogos = jogos.reduce((total, item) => {
+    const premio = Number(item?.premio)
+    if (Number.isFinite(premio)) return total + premio
+
+    const lucro = Number(item?.lucro)
+    if (!Number.isFinite(lucro)) return total
+
+    return total + Math.max(0, numeroEstatistica(item?.entrada) + lucro)
+  }, 0)
+
+  return {
+    sports_count: esportes.length,
+    games_count: jogos.length,
+    wins: vitoriasEsporte + vitoriasJogos,
+    losses: derrotasEsporte + derrotasJogos,
+    pending: esportes.filter((item) => item?.status === 'Pendente').length,
+    total_staked: totalApostadoEsportes + totalApostadoJogos,
+    total_payout: totalPagoEsportes + totalPagoJogos,
+    net_profit: resultadosFinanceiros.reduce(
+      (total, item) => total + item,
+      0,
+    ),
+  }
+}
 
 function carregarEventos() {
   const rodadaSalva = Math.min(
@@ -144,6 +252,7 @@ function formatarMoedas(valor) {
 }
 
 function App() {
+  const siteTexts = useSiteTexts()
   const [pagina, setPagina] = useState('inicio')
   const [eventos, setEventos] = useState(carregarEventos)
   const [rodadaBahrein, setRodadaBahrein] =
@@ -198,12 +307,452 @@ function App() {
     useState(true)
   const [avisoConfirmado, setAvisoConfirmado] =
     useState(false)
+  const [authSession, setAuthSession] = useState(null)
+  const [authReady, setAuthReady] = useState(false)
+  const [authModalMode, setAuthModalMode] = useState(null)
+  const [profile, setProfile] = useState(null)
+  const [profileReady, setProfileReady] = useState(false)
+  const [profileModalOpen, setProfileModalOpen] = useState(false)
+  const [publicProfileUserId, setPublicProfileUserId] = useState(null)
+  const [publicProfileOrigin, setPublicProfileOrigin] = useState('inicio')
+  const [creatorMessageUnlocked, setCreatorMessageUnlocked] = useState(
+    () => localStorage.getItem(CREATOR_MESSAGE_UNLOCK_KEY) === 'sim',
+  )
+  const [legacyBalancePrompt, setLegacyBalancePrompt] = useState(false)
+  const [historyReady, setHistoryReady] = useState(false)
+  const [legacyHistoryPrompt, setLegacyHistoryPrompt] = useState(false)
+  const [legacyHistoryLoading, setLegacyHistoryLoading] = useState(false)
+  const [historicoEsportesAdmin, setHistoricoEsportesAdmin] = useState([])
 
   const saldoAtualRef = useRef(saldo)
+  const saldoLegadoRef = useRef(saldo)
+  const saldoBancoHidratadoRef = useRef(false)
+  const historicoLegadoRef = useRef(historico)
+  const historicoJogosLegadoRef = useRef(historicoJogos)
+  const historyHydratedRef = useRef(false)
+  const historySyncTimerRef = useRef(null)
+  const publicStatsSyncTimerRef = useRef(null)
+  const sportsLegacyAccountRef = useRef([])
+  const sportsBetSubmittingRef = useRef(false)
   const videoFalenciaRef = useRef(null)
   const videoAnuncioRef = useRef(null)
   const falenciaInicialVerificadaRef = useRef(false)
   const recompensaAnuncioEntregueRef = useRef(false)
+
+  function chaveHistoricoLocal(base) {
+    const userId = authSession?.user?.id
+    return userId ? `${base}:${userId}` : base
+  }
+
+  function salvarHistoricoNoNavegador(base, dados) {
+    localStorage.setItem(chaveHistoricoLocal(base), JSON.stringify(dados))
+  }
+
+  function aplicarSnapshotMercados(snapshot) {
+    const state = Array.isArray(snapshot) ? snapshot[0] : snapshot
+    const markets = Array.isArray(state?.events) ? state.events : []
+    const round = Math.min(7, Math.max(1, Number(state?.round) || 1))
+
+    setEventos(markets)
+    setRodadaBahrein(round)
+    setSelecoes((selecoesAtuais) =>
+      selecoesAtuais.filter((selecao) => {
+        const mercado = markets.find(
+          (item) => String(item.id) === String(selecao.eventoId),
+        )
+
+        return mercado && mercado.status !== 'suspenso' && !mercado.resultadoOpcaoId
+      }),
+    )
+
+    return state
+  }
+
+  async function carregarMercadosEsportivosAutoritativos() {
+    const { data, error } = await supabase.rpc('get_sports_markets')
+
+    if (error) {
+      console.error('Falha ao carregar mercados autoritativos:', error)
+      return null
+    }
+
+    return aplicarSnapshotMercados(data)
+  }
+
+  function mesclarHistoricoEsportivo(apostasAutoritativas) {
+    const novas = Array.isArray(apostasAutoritativas) ? apostasAutoritativas : []
+    const legado = Array.isArray(sportsLegacyAccountRef.current)
+      ? sportsLegacyAccountRef.current.map((item) => ({
+          ...item,
+          legacy: true,
+          authoritative: false,
+        }))
+      : []
+
+    return [...novas, ...legado]
+  }
+
+  async function carregarApostasEsportivasAutoritativas() {
+    if (!authSession?.user) {
+      setHistorico(mesclarHistoricoEsportivo([]))
+      return []
+    }
+
+    const { data, error } = await supabase.rpc('get_my_sports_bets')
+
+    if (error) {
+      console.error('Falha ao carregar bilhetes esportivos:', error)
+      return []
+    }
+
+    const apostas = Array.isArray(data) ? data : []
+    setHistorico(mesclarHistoricoEsportivo(apostas))
+    return apostas
+  }
+
+  async function carregarApostasEsportesAdmin() {
+    if (!authSession?.user || profile?.role !== 'admin') {
+      setHistoricoEsportesAdmin([])
+      return []
+    }
+
+    const { data, error } = await supabase.rpc('admin_get_sports_bets')
+
+    if (error) {
+      console.error('Falha ao carregar bilhetes da banca:', error)
+      return []
+    }
+
+    const apostas = Array.isArray(data) ? data : []
+    setHistoricoEsportesAdmin(apostas)
+    return apostas
+  }
+
+  function hidratarHistoricoDaConta(data) {
+    const sports = Array.isArray(data?.sports_history) ? data.sports_history : []
+    const games = Array.isArray(data?.games_history) ? data.games_history : []
+
+    sportsLegacyAccountRef.current = sports
+    setHistorico(sports)
+    setHistoricoJogos(games)
+    historyHydratedRef.current = true
+    setHistoryReady(true)
+    setLegacyHistoryPrompt(false)
+
+    if (authSession?.user?.id) {
+      localStorage.setItem(`taihenbet-historico:${authSession.user.id}`, JSON.stringify(sports))
+      localStorage.setItem(`taihenbet-historico-jogos:${authSession.user.id}`, JSON.stringify(games))
+      void carregarApostasEsportivasAutoritativas()
+    }
+  }
+
+  async function resolverHistoricoLegado(importar) {
+    if (!authSession?.user || legacyHistoryLoading) return
+
+    setLegacyHistoryLoading(true)
+    const { data, error } = await supabase.rpc('resolve_legacy_history', {
+      p_import_local: importar,
+      p_sports_history: importar ? historicoLegadoRef.current : [],
+      p_games_history: importar ? historicoJogosLegadoRef.current : [],
+    })
+    setLegacyHistoryLoading(false)
+
+    if (error) {
+      console.error('Falha ao resolver histórico legado:', error)
+      setMensagem({ tipo: 'erro', texto: 'A banca não conseguiu arquivar o histórico antigo. Confira o SQL da Fase 3.6.' })
+      return
+    }
+
+    const state = Array.isArray(data) ? data[0] : data
+    hidratarHistoricoDaConta(state)
+
+    if (importar) {
+      localStorage.removeItem('taihenbet-historico')
+      localStorage.removeItem('taihenbet-historico-jogos')
+      setMensagem({ tipo: 'sucesso', texto: 'Histórico antigo importado. As provas agora sobrevivem ao navegador.' })
+    } else {
+      setMensagem({ tipo: 'sucesso', texto: 'Ficha nova iniciada. O arquivo antigo ficou fora desta conta.' })
+    }
+  }
+
+  useEffect(() => {
+    function revelarMensagemDoCriador() {
+      setCreatorMessageUnlocked(true)
+      localStorage.setItem(CREATOR_MESSAGE_UNLOCK_KEY, 'sim')
+    }
+
+    window.addEventListener(
+      'taihenbet:reveal-creator-message',
+      revelarMensagemDoCriador,
+    )
+
+    return () => {
+      window.removeEventListener(
+        'taihenbet:reveal-creator-message',
+        revelarMensagemDoCriador,
+      )
+    }
+  }, [])
+
+  useEffect(() => {
+    let ativo = true
+
+    const recoveryMarcadoNaUrl = () => {
+      const params = new URLSearchParams(window.location.search)
+      return (
+        params.get('recovery') === '1' ||
+        window.location.hash.includes('type=recovery')
+      )
+    }
+
+    const abrirRecuperacao = () => {
+      setAvisoInicialAtivo(false)
+      setAvisoConfirmado(true)
+      setAuthModalMode('reset')
+    }
+
+    // O Supabase pode processar o token de recovery antes de o listener
+    // do React terminar de montar. A marca na URL funciona como fallback
+    // determinístico e evita cair simplesmente logado na Home/Painel.
+    if (recoveryMarcadoNaUrl()) {
+      abrirRecuperacao()
+    }
+
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (!ativo) {
+          return
+        }
+
+        setAuthSession(data.session ?? null)
+        setAuthReady(true)
+
+        if (recoveryMarcadoNaUrl()) {
+          abrirRecuperacao()
+        }
+      })
+      .catch(() => {
+        if (ativo) {
+          setAuthReady(true)
+        }
+      })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!ativo) {
+        return
+      }
+
+      setAuthSession(session)
+      setAuthReady(true)
+
+      if (event === 'PASSWORD_RECOVERY' || recoveryMarcadoNaUrl()) {
+        abrirRecuperacao()
+      }
+    })
+
+    return () => {
+      ativo = false
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  useEffect(() => {
+    let ativo = true
+
+    saldoBancoHidratadoRef.current = false
+
+    if (!authSession?.user) {
+      setProfile(null)
+      setProfileReady(true)
+      setLegacyBalancePrompt(false)
+      return undefined
+    }
+
+    setProfileReady(false)
+
+    supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', authSession.user.id)
+      .single()
+      .then(({ data, error }) => {
+        if (!ativo) return
+
+        if (error) {
+          console.error('Falha ao carregar perfil:', error)
+          setProfileReady(true)
+          setMensagem({
+            tipo: 'erro',
+            texto: 'A conta entrou, mas o banco de perfis ainda não respondeu. Confira se o SQL da Fase 3.4 foi executado no Supabase.',
+          })
+          return
+        }
+
+        const saldoDoBanco = Math.max(0, Number(data.balance) || 0)
+
+        setProfile(data)
+        saldoAtualRef.current = saldoDoBanco
+        setSaldo(saldoDoBanco)
+        saldoBancoHidratadoRef.current = true
+        setProfileReady(true)
+        setLegacyBalancePrompt(!data.legacy_balance_imported)
+      })
+
+    return () => {
+      ativo = false
+    }
+  }, [authSession?.user?.id])
+
+  useEffect(() => {
+    const userId = authSession?.user?.id
+
+    if (!userId) {
+      return undefined
+    }
+
+    let ativo = true
+
+    const aplicarAtualizacaoRealtime = (perfilAtualizado) => {
+      if (!ativo || !perfilAtualizado) return
+
+      aplicarPerfilDaCarteira(perfilAtualizado)
+      saldoBancoHidratadoRef.current = true
+      setLegacyBalancePrompt(!perfilAtualizado.legacy_balance_imported)
+    }
+
+    const canal = supabase
+      .channel(`taihenbet-profile-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${userId}`,
+        },
+        (payload) => {
+          aplicarAtualizacaoRealtime(payload.new)
+        },
+      )
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('Realtime do saldo indisponível; a banca tentará sincronizar ao voltar para a aba.')
+        }
+      })
+
+    const sincronizarPerfil = async () => {
+      if (!ativo || document.visibilityState === 'hidden') return
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+
+      if (!ativo) return
+
+      if (error) {
+        console.warn('Falha no fallback de sincronização do saldo:', error)
+        return
+      }
+
+      aplicarAtualizacaoRealtime(data)
+    }
+
+    const sincronizarAoVoltar = () => {
+      if (document.visibilityState === 'visible') {
+        void sincronizarPerfil()
+      }
+    }
+
+    window.addEventListener('focus', sincronizarAoVoltar)
+    document.addEventListener('visibilitychange', sincronizarAoVoltar)
+
+    return () => {
+      ativo = false
+      window.removeEventListener('focus', sincronizarAoVoltar)
+      document.removeEventListener('visibilitychange', sincronizarAoVoltar)
+      void supabase.removeChannel(canal)
+    }
+  }, [authSession?.user?.id])
+
+  useEffect(() => {
+    let ativo = true
+    historyHydratedRef.current = false
+    setLegacyHistoryPrompt(false)
+
+    if (!authSession?.user) {
+      setHistorico([])
+      setHistoricoJogos([])
+      setHistoryReady(true)
+      return undefined
+    }
+
+    setHistoryReady(false)
+
+    supabase
+      .from('user_history_state')
+      .select('*')
+      .eq('user_id', authSession.user.id)
+      .single()
+      .then(async ({ data, error }) => {
+        if (!ativo) return
+
+        if (error) {
+          console.error('Falha ao carregar histórico da conta:', error)
+          setHistoryReady(true)
+          setMensagem({
+            tipo: 'erro',
+            texto: 'O perfil entrou, mas o arquivo de histórico ainda não existe. Rode o SQL da Fase 3.6 no Supabase.',
+          })
+          return
+        }
+
+        if (!data.legacy_history_imported) {
+          const hasLegacy = historicoLegadoRef.current.length > 0 || historicoJogosLegadoRef.current.length > 0
+
+          if (hasLegacy) {
+            setLegacyHistoryPrompt(true)
+            return
+          }
+
+          const { data: resolved, error: resolveError } = await supabase.rpc('resolve_legacy_history', {
+            p_import_local: false,
+            p_sports_history: [],
+            p_games_history: [],
+          })
+
+          if (!ativo) return
+          if (resolveError) {
+            console.error('Falha ao inicializar histórico:', resolveError)
+            setHistoryReady(true)
+            return
+          }
+
+          hidratarHistoricoDaConta(Array.isArray(resolved) ? resolved[0] : resolved)
+          return
+        }
+
+        hidratarHistoricoDaConta(data)
+      })
+
+    return () => { ativo = false }
+  }, [authSession?.user?.id])
+
+  useEffect(() => {
+    void carregarMercadosEsportivosAutoritativos()
+  }, [])
+
+  useEffect(() => {
+    if (profile?.role === 'admin' && authSession?.user?.id) {
+      void carregarApostasEsportesAdmin()
+    } else {
+      setHistoricoEsportesAdmin([])
+    }
+  }, [profile?.role, authSession?.user?.id])
 
   useEffect(() => {
     saldoAtualRef.current = saldo
@@ -288,11 +837,77 @@ function App() {
   }, [sessaoAoVivo])
 
   useEffect(() => {
-    localStorage.setItem(
-      'taihenbet-historico-jogos',
-      JSON.stringify(historicoJogos),
-    )
-  }, [historicoJogos])
+    if (!historyReady) return
+    salvarHistoricoNoNavegador('taihenbet-historico-jogos', historicoJogos)
+  }, [historicoJogos, historyReady, authSession?.user?.id])
+
+  useEffect(() => {
+    if (!historyReady) return
+    salvarHistoricoNoNavegador('taihenbet-historico', historico)
+  }, [historico, historyReady, authSession?.user?.id])
+
+  useEffect(() => {
+    if (publicStatsSyncTimerRef.current) {
+      window.clearTimeout(publicStatsSyncTimerRef.current)
+      publicStatsSyncTimerRef.current = null
+    }
+
+    if (!authSession?.user || !historyReady || legacyHistoryPrompt) {
+      return undefined
+    }
+
+    const snapshot = calcularSnapshotPerfilPublico(historico, historicoJogos)
+
+    publicStatsSyncTimerRef.current = window.setTimeout(async () => {
+      const { error } = await supabase.rpc('sync_my_public_stats', {
+        p_stats: snapshot,
+      })
+
+      if (error) {
+        console.error('Falha ao sincronizar estatísticas públicas:', error)
+      }
+    }, 700)
+
+    return () => {
+      if (publicStatsSyncTimerRef.current) {
+        window.clearTimeout(publicStatsSyncTimerRef.current)
+        publicStatsSyncTimerRef.current = null
+      }
+    }
+  }, [
+    historico,
+    historicoJogos,
+    historyReady,
+    legacyHistoryPrompt,
+    authSession?.user?.id,
+  ])
+
+  useEffect(() => {
+    if (historySyncTimerRef.current) {
+      window.clearTimeout(historySyncTimerRef.current)
+      historySyncTimerRef.current = null
+    }
+
+    if (!authSession?.user || !historyReady || !historyHydratedRef.current || legacyHistoryPrompt) {
+      return undefined
+    }
+
+    historySyncTimerRef.current = window.setTimeout(async () => {
+      const { error } = await supabase.rpc('sync_my_history', {
+        p_sports_history: [],
+        p_games_history: historicoJogos,
+      })
+
+      if (error) console.error('Falha ao sincronizar histórico:', error)
+    }, 550)
+
+    return () => {
+      if (historySyncTimerRef.current) {
+        window.clearTimeout(historySyncTimerRef.current)
+        historySyncTimerRef.current = null
+      }
+    }
+  }, [historico, historicoJogos, historyReady, authSession?.user?.id, legacyHistoryPrompt])
 
   const oddTotal = selecoes.reduce(
     (total, selecao) => total * Number(selecao.odd),
@@ -393,7 +1008,7 @@ function App() {
     )
   }
 
-  function concluirAnuncioRecompensado() {
+  async function concluirAnuncioRecompensado() {
     if (
       !anuncioTerminou ||
       recompensaAnuncioEntregueRef.current
@@ -402,11 +1017,17 @@ function App() {
     }
 
     recompensaAnuncioEntregueRef.current = true
+    const perfilAtualizado = await executarRpcCarteira(
+      'claim_ad_reward',
+      { p_external_id: crypto.randomUUID() },
+      'A banca recusou a recompensa do anúncio. Aguarde um pouco antes de tentar novamente.',
+    )
 
-    const novoSaldo = saldoAtualRef.current + 20
+    if (!perfilAtualizado) {
+      recompensaAnuncioEntregueRef.current = false
+      return
+    }
 
-    saldoAtualRef.current = novoSaldo
-    setSaldo(novoSaldo)
     setAnuncioAtivo(false)
     setAnuncioTerminou(false)
     setTempoAnuncio(0)
@@ -443,7 +1064,102 @@ function App() {
     setVideoFalenciaTerminou(false)
   }
 
+  function resolverSaldoLegado(perfilAtualizado) {
+    setLegacyBalancePrompt(false)
+
+    if (!perfilAtualizado) return
+
+    const saldoDoBanco = Math.max(0, Number(perfilAtualizado.balance) || 0)
+    setProfile(perfilAtualizado)
+    saldoAtualRef.current = saldoDoBanco
+    setSaldo(saldoDoBanco)
+    saldoBancoHidratadoRef.current = true
+  }
+
+  function salvarPerfilLocal(perfilAtualizado) {
+    if (!perfilAtualizado) return
+    setProfile(perfilAtualizado)
+  }
+
+  function aplicarPerfilDaCarteira(perfilAtualizado) {
+    const perfilFinal = Array.isArray(perfilAtualizado)
+      ? perfilAtualizado[0]
+      : perfilAtualizado
+
+    if (!perfilFinal) return null
+
+    const perfilComProgressao = {
+      ...perfilFinal,
+      equipped_title_key:
+        perfilFinal.equipped_title_key ??
+        profile?.equipped_title_key ??
+        null,
+    }
+    const novoSaldo = Math.max(
+      0,
+      Number(perfilComProgressao.balance) || 0,
+    )
+    setProfile(perfilComProgressao)
+    saldoAtualRef.current = novoSaldo
+    setSaldo(novoSaldo)
+    return perfilComProgressao
+  }
+
+  async function executarRpcCarteira(nome, argumentos, mensagemErro) {
+    if (!authSession?.user) {
+      setMensagem({
+        tipo: 'erro',
+        texto: 'Entre na sua conta para movimentar TaiCoins.',
+      })
+      return null
+    }
+
+    const { data, error } = await supabase.rpc(nome, argumentos)
+
+    if (error) {
+      console.error(`Falha na carteira (${nome}):`, error)
+      setMensagem({
+        tipo: 'erro',
+        texto: mensagemErro || 'A banca recusou a movimentação de TaiCoins.',
+      })
+      return null
+    }
+
+    return aplicarPerfilDaCarteira(data)
+  }
+
+  function abrirPerfilPublico(userId, origem = pagina) {
+    if (!userId) return
+
+    setPublicProfileUserId(userId)
+    setPublicProfileOrigin(
+      origem && origem !== 'perfil-publico' ? origem : 'inicio',
+    )
+    setPagina('perfil-publico')
+    setMensagem(null)
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    })
+  }
+
+  function voltarDoPerfilPublico() {
+    navegarPara(publicProfileOrigin || 'inicio')
+  }
+
   function navegarPara(novaPagina) {
+    const podeAcessarPainel = profile?.role === 'admin'
+
+    if (novaPagina === 'admin' && !podeAcessarPainel) {
+      setMensagem({
+        tipo: 'erro',
+        texto: 'Acesso negado. A Ditadora Suprema não reconheceu suas credenciais administrativas.',
+      })
+      setPagina('inicio')
+      return
+    }
+
     setPagina(novaPagina)
     setMensagem(null)
 
@@ -525,13 +1241,40 @@ function App() {
     })
   }
 
-  function confirmarAposta() {
+  async function enviarNotificacaoPessoal({
+    tipo,
+    titulo,
+    texto,
+    paginaDestino = null,
+    entidadeId = null,
+    metadata = {},
+  }) {
+    if (!authSession?.user) return
+
+    const { error } = await supabase.rpc('push_my_notification', {
+      p_type: tipo,
+      p_title: titulo,
+      p_message: texto,
+      p_target_page: paginaDestino,
+      p_target_entity_id: entidadeId,
+      p_metadata: metadata,
+    })
+
+    if (error) {
+      console.warn('A Central de Notificações não conseguiu registrar o evento:', error)
+    }
+  }
+
+  async function confirmarAposta() {
+    if (sportsBetSubmittingRef.current) {
+      return
+    }
+
     if (selecoes.length === 0) {
       setMensagem({
         tipo: 'erro',
         texto: 'Escolha pelo menos uma odd.',
       })
-
       return
     }
 
@@ -552,22 +1295,7 @@ function App() {
         tipo: 'erro',
         texto: 'Uma das seleções foi suspensa ou encerrada. Monte o bilhete novamente.',
       })
-
-      setSelecoes((selecoesAtuais) =>
-        selecoesAtuais.filter((selecao) => {
-          const evento = eventos.find(
-            (item) =>
-              String(item.id) === String(selecao.eventoId),
-          )
-
-          return (
-            evento &&
-            evento.status !== 'suspenso' &&
-            !evento.resultadoOpcaoId
-          )
-        }),
-      )
-
+      await carregarMercadosEsportivosAutoritativos()
       return
     }
 
@@ -576,7 +1304,6 @@ function App() {
         tipo: 'erro',
         texto: 'A aposta mínima é de 10 TaiCoins.',
       })
-
       return
     }
 
@@ -585,67 +1312,72 @@ function App() {
         tipo: 'erro',
         texto: 'Você não possui TaiCoins suficientes.',
       })
-
       return
     }
 
-    const agora = Date.now()
-
-    const novaAposta = {
-      id: crypto.randomUUID(),
-      data: new Date(agora).toLocaleString('pt-BR'),
-      criadaEm: agora,
-      selecoes: selecoes.map((selecao) => ({
-        ...selecao,
-        statusSelecao: 'Pendente',
-      })),
-      valor: valorNumerico,
-      oddTotal,
-      retornoEstimado,
-      status: 'Pendente',
+    if (!authSession?.user) {
+      setMensagem({
+        tipo: 'erro',
+        texto: 'Entre na sua conta para registrar um bilhete.',
+      })
+      return
     }
 
-    setHistorico((historicoAtual) => {
-      const novoHistorico = [novaAposta, ...historicoAtual]
+    sportsBetSubmittingRef.current = true
+    const requestId = crypto.randomUUID()
 
-      localStorage.setItem(
-        'taihenbet-historico',
-        JSON.stringify(novoHistorico),
-      )
+    try {
+      const { data, error } = await supabase.rpc('place_sports_bet', {
+        p_stake: valorNumerico,
+        p_selections: selecoes.map((selecao) => ({
+          marketId: String(selecao.eventoId),
+          optionId: String(selecao.opcaoId),
+        })),
+        p_request_id: requestId,
+      })
 
-      return novoHistorico
-    })
+      if (error) {
+        console.error('Falha ao registrar bilhete autoritativo:', error)
+        setMensagem({
+          tipo: 'erro',
+          texto: error.message?.includes('Combined odd')
+            ? 'A combinada ficou amaldiçoada demais para a banca. Reduza o número de seleções.'
+            : 'A banca recusou o bilhete. As odds ou o saldo podem ter mudado; atualize e tente novamente.',
+        })
+        await carregarMercadosEsportivosAutoritativos()
+        return
+      }
 
-    const novoSaldo = Math.max(
-      0,
-      saldoAtualRef.current - valorNumerico,
-    )
+      const result = Array.isArray(data) ? data[0] : data
+      const perfilAtualizado = aplicarPerfilDaCarteira(result?.profile)
 
-    saldoAtualRef.current = novoSaldo
-    setSaldo(novoSaldo)
+      await carregarApostasEsportivasAutoritativas()
+      if (profile?.role === 'admin') {
+        await carregarApostasEsportesAdmin()
+      }
 
-    if (novoSaldo <= 0) {
-      abrirFalencia()
+      setSelecoes([])
+      setValorAposta('')
+
+      if (Number(perfilAtualizado?.balance) <= 0) {
+        abrirFalencia()
+      }
+
+      setMensagem({
+        tipo: 'sucesso',
+        texto: `Bilhete selado no servidor! ${formatarMoedas(
+          valorNumerico,
+        )} TaiCoins foram sacrificadas e as odds ficaram travadas no banco.`,
+      })
+    } finally {
+      sportsBetSubmittingRef.current = false
     }
-
-    setSelecoes([])
-    setValorAposta('')
-
-    setMensagem({
-      tipo: 'sucesso',
-      texto: `Aposta confirmada! ${formatarMoedas(
-        valorNumerico,
-      )} TaiCoins foram sacrificadas por motivos questionáveis.`,
-    })
   }
 
-  function publicarRodadaBahrein(numeroRodada) {
+  async function publicarRodadaBahrein(numeroRodada) {
     const rodada = Math.min(
       7,
-      Math.max(
-        1,
-        Math.floor(Number(numeroRodada) || 1),
-      ),
+      Math.max(1, Math.floor(Number(numeroRodada) || 1)),
     )
 
     const possuiPartidaPendente = eventos.some(
@@ -654,20 +1386,31 @@ function App() {
         !evento.resultadoOpcaoId,
     )
 
-    if (possuiPartidaPendente) {
+    if (possuiPartidaPendente && rodada !== rodadaBahrein) {
       const confirmou = window.confirm(
-        `Publicar a rodada ${rodada} substituirá as partidas atuais que ainda não foram encerradas. Continuar?`,
+        `A banca vai tentar publicar a rodada ${rodada}. Se existirem bilhetes pendentes da rodada atual, o servidor recusará a troca até os resultados serem resolvidos. Continuar?`,
       )
 
-      if (!confirmou) {
-        return
-      }
+      if (!confirmou) return
     }
 
-    setEventos(gerarRodadaBahrein(rodada))
-    setRodadaBahrein(rodada)
-    setSelecoes([])
+    const { data, error } = await supabase.rpc(
+      'admin_publish_bahrain_round',
+      { p_round: rodada },
+    )
 
+    if (error) {
+      console.error('Falha ao publicar rodada:', error)
+      setMensagem({
+        tipo: 'erro',
+        texto: error.message?.includes('Resolve the current round')
+          ? 'Existem bilhetes pendentes na rodada atual. Resolva as partidas antes de trocar a rodada.'
+          : 'A banca não conseguiu publicar a rodada no servidor.',
+      })
+      return
+    }
+
+    aplicarSnapshotMercados(data)
     setSessaoAoVivo((sessaoAtual) => ({
       ...sessaoAtual,
       mercadoIds: [],
@@ -675,120 +1418,100 @@ function App() {
 
     setMensagem({
       tipo: 'sucesso',
-      texto: `Rodada ${rodada} da Liga do Bahrein publicada com quatro partidas.`,
+      texto: `Rodada ${rodada} publicada pelo servidor com as odds oficiais da Liga do Bahrein.`,
     })
 
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  function salvarMercado(mercado) {
-    const mercadoJaExiste = eventos.some(
-      (evento) => String(evento.id) === String(mercado.id),
+  async function salvarMercado(mercado) {
+    const { data, error } = await supabase.rpc(
+      'admin_save_sports_market',
+      { p_market: mercado },
     )
 
-    setEventos((eventosAtuais) => {
-      if (mercadoJaExiste) {
-        return eventosAtuais.map((evento) =>
-          String(evento.id) === String(mercado.id)
-            ? {
-                ...evento,
-                ...mercado,
-              }
-            : evento,
-        )
-      }
-
-      return [mercado, ...eventosAtuais]
-    })
-
-    setMensagem({
-      tipo: 'sucesso',
-      texto: mercadoJaExiste
-        ? 'Mercado atualizado com sucesso.'
-        : 'Novo mercado aberto. A dignidade dos usuários está novamente em risco.',
-    })
-  }
-
-  function alternarStatusMercado(mercadoId) {
-    const mercado = eventos.find(
-      (evento) => String(evento.id) === String(mercadoId),
-    )
-
-    if (!mercado) {
-      return
-    }
-
-    if (mercado.resultadoOpcaoId) {
+    if (error) {
+      console.error('Falha ao salvar mercado:', error)
       setMensagem({
         tipo: 'erro',
-        texto: 'Mercados encerrados não podem ser suspensos ou reabertos.',
+        texto: error.message?.includes('pending')
+          ? 'Esse mercado possui bilhetes pendentes e não pode ter as odds reescritas agora.'
+          : 'O servidor recusou a edição desse mercado.',
       })
-
       return
     }
 
-    const seraSuspenso = mercado.status !== 'suspenso'
-
-    setEventos((eventosAtuais) =>
-      eventosAtuais.map((evento) =>
-        String(evento.id) === String(mercadoId)
-          ? {
-              ...evento,
-              status: seraSuspenso ? 'suspenso' : 'aberto',
-            }
-          : evento,
-      ),
-    )
-
-    if (seraSuspenso) {
-      setSelecoes((selecoesAtuais) =>
-        selecoesAtuais.filter(
-          (selecao) =>
-            String(selecao.eventoId) !== String(mercadoId),
-        ),
-      )
-    }
-
+    aplicarSnapshotMercados(data)
     setMensagem({
       tipo: 'sucesso',
-      texto: seraSuspenso
-        ? 'Mercado suspenso. A banca está investigando atividades suspeitas.'
-        : 'Mercado reaberto. As decisões ruins podem continuar.',
+      texto: mercado.id
+        ? 'Mercado salvo no servidor. Odds futuras atualizadas.'
+        : 'Novo mercado autoritativo publicado pela banca.',
     })
   }
 
-  function excluirMercado(mercadoId) {
-    const confirmou = window.confirm(
-      'Deseja excluir este mercado permanentemente?',
+  async function alternarStatusMercado(mercadoId) {
+    const { data, error } = await supabase.rpc(
+      'admin_toggle_sports_market',
+      { p_market_id: String(mercadoId) },
     )
 
-    if (!confirmou) {
+    if (error) {
+      console.error('Falha ao alternar mercado:', error)
+      setMensagem({
+        tipo: 'erro',
+        texto: 'O servidor recusou a mudança de status desse mercado.',
+      })
       return
     }
 
-    setEventos((eventosAtuais) =>
-      eventosAtuais.filter(
-        (evento) => String(evento.id) !== String(mercadoId),
-      ),
-    )
-
+    aplicarSnapshotMercados(data)
     setSelecoes((selecoesAtuais) =>
-      selecoesAtuais.filter(
-        (selecao) =>
-          String(selecao.eventoId) !== String(mercadoId),
-      ),
+      selecoesAtuais.filter((selecao) => {
+        const evento = (Array.isArray(data?.events) ? data.events : []).find(
+          (item) => String(item.id) === String(selecao.eventoId),
+        )
+        return evento && evento.status !== 'suspenso' && !evento.resultadoOpcaoId
+      }),
     )
 
     setMensagem({
       tipo: 'sucesso',
-      texto: 'Mercado excluído. Todas as provas foram destruídas.',
+      texto: 'Status do mercado atualizado no servidor.',
     })
   }
 
-  function limparMercadosEncerrados() {
+  async function excluirMercado(mercadoId) {
+    const confirmou = window.confirm(
+      'Arquivar este mercado? Bilhetes pendentes impedem a operação.',
+    )
+
+    if (!confirmou) return
+
+    const { data, error } = await supabase.rpc(
+      'admin_archive_sports_market',
+      { p_market_id: String(mercadoId) },
+    )
+
+    if (error) {
+      console.error('Falha ao arquivar mercado:', error)
+      setMensagem({
+        tipo: 'erro',
+        texto: error.message?.includes('pending')
+          ? 'Esse mercado ainda participa de bilhetes pendentes e não pode ser arquivado.'
+          : 'A banca não conseguiu arquivar o mercado.',
+      })
+      return
+    }
+
+    aplicarSnapshotMercados(data)
+    setMensagem({
+      tipo: 'sucesso',
+      texto: 'Mercado arquivado no servidor. O histórico dos bilhetes foi preservado.',
+    })
+  }
+
+  async function limparMercadosEncerrados() {
     const quantidade = eventos.filter(
       (evento) => Boolean(evento.resultadoOpcaoId),
     ).length
@@ -802,43 +1525,28 @@ function App() {
     }
 
     const confirmou = window.confirm(
-      `Excluir permanentemente ${quantidade} mercado(s) encerrado(s)?`,
+      `Arquivar ${quantidade} mercado(s) encerrado(s)? Os comprovantes dos bilhetes continuarão no banco.`,
     )
 
-    if (!confirmou) {
+    if (!confirmou) return
+
+    const { data, error } = await supabase.rpc(
+      'admin_clear_settled_sports_markets',
+    )
+
+    if (error) {
+      console.error('Falha ao limpar mercados:', error)
+      setMensagem({
+        tipo: 'erro',
+        texto: 'A banca não conseguiu arquivar os mercados encerrados.',
+      })
       return
     }
 
-    const idsEncerrados = new Set(
-      eventos
-        .filter((evento) => Boolean(evento.resultadoOpcaoId))
-        .map((evento) => String(evento.id)),
-    )
-
-    setEventos((eventosAtuais) =>
-      eventosAtuais.filter(
-        (evento) => !evento.resultadoOpcaoId,
-      ),
-    )
-
-    setSelecoes((selecoesAtuais) =>
-      selecoesAtuais.filter(
-        (selecao) =>
-          !idsEncerrados.has(String(selecao.eventoId)),
-      ),
-    )
-
-    setSessaoAoVivo((sessaoAtual) => ({
-      ...sessaoAtual,
-      mercadoIds: (sessaoAtual.mercadoIds || []).filter(
-        (mercadoId) =>
-          !idsEncerrados.has(String(mercadoId)),
-      ),
-    }))
-
+    aplicarSnapshotMercados(data)
     setMensagem({
       tipo: 'sucesso',
-      texto: `${quantidade} mercado(s) encerrado(s) foram removidos definitivamente.`,
+      texto: `${quantidade} mercado(s) encerrado(s) foram arquivados sem apagar os bilhetes.`,
     })
   }
 
@@ -997,32 +1705,18 @@ function App() {
     })
   }
 
-  function resolverMercado(mercadoId, opcaoVencedoraId) {
+  async function resolverMercado(mercadoId, opcaoVencedoraId) {
     const mercado = eventos.find(
       (evento) => String(evento.id) === String(mercadoId),
     )
 
     if (!mercado) {
-      setMensagem({
-        tipo: 'erro',
-        texto: 'Mercado não encontrado.',
-      })
-
-      return
-    }
-
-    if (mercado.resultadoOpcaoId) {
-      setMensagem({
-        tipo: 'erro',
-        texto: 'Esse mercado já possui um resultado definido.',
-      })
-
+      setMensagem({ tipo: 'erro', texto: 'Mercado não encontrado.' })
       return
     }
 
     const opcaoVencedora = mercado.opcoes.find(
-      (opcao) =>
-        String(opcao.id) === String(opcaoVencedoraId),
+      (opcao) => String(opcao.id) === String(opcaoVencedoraId),
     )
 
     if (!opcaoVencedora) {
@@ -1030,264 +1724,207 @@ function App() {
         tipo: 'erro',
         texto: 'A opção vencedora não foi encontrada.',
       })
-
       return
     }
 
-    const resolvidoEm = new Date().toLocaleString('pt-BR')
-
-    const eventosAtualizados = eventos.map((evento) =>
-      String(evento.id) === String(mercadoId)
-        ? {
-            ...evento,
-            status: 'encerrado',
-            resultadoOpcaoId: opcaoVencedora.id,
-            resultadoNome: opcaoVencedora.nome,
-            resultadoResolvidoEm: resolvidoEm,
-          }
-        : evento,
+    const { data, error } = await supabase.rpc(
+      'admin_resolve_sports_market',
+      {
+        p_market_id: String(mercadoId),
+        p_winner_option_id: String(opcaoVencedoraId),
+      },
     )
 
-    const resultadosPorEvento = new Map(
-      eventosAtualizados
-        .filter((evento) => evento.resultadoOpcaoId)
-        .map((evento) => [
-          String(evento.id),
-          String(evento.resultadoOpcaoId),
-        ]),
-    )
+    if (error) {
+      console.error('Falha ao resolver mercado:', error)
+      setMensagem({
+        tipo: 'erro',
+        texto: 'O servidor recusou a resolução desse mercado.',
+      })
+      return
+    }
 
-    let premioTotal = 0
-    let bilhetesGanhos = 0
-    let bilhetesPerdidos = 0
+    const result = Array.isArray(data) ? data[0] : data
+    if (result?.markets) {
+      aplicarSnapshotMercados(result.markets)
+    } else {
+      await carregarMercadosEsportivosAutoritativos()
+    }
 
-    const historicoAtualizado = historico.map((aposta) => {
-      if (aposta.status !== 'Pendente') {
-        return aposta
-      }
-
-      let possuiEscolhaPerdida = false
-      let todasAsEscolhasForamResolvidas = true
-
-      const selecoesAtualizadas = aposta.selecoes.map(
-        (selecao) => {
-          const resultadoDoEvento = resultadosPorEvento.get(
-            String(selecao.eventoId),
-          )
-
-          if (!resultadoDoEvento) {
-            todasAsEscolhasForamResolvidas = false
-
-            return {
-              ...selecao,
-              statusSelecao: 'Pendente',
-            }
-          }
-
-          const acertou =
-            resultadoDoEvento === String(selecao.opcaoId)
-
-          if (!acertou) {
-            possuiEscolhaPerdida = true
-          }
-
-          return {
-            ...selecao,
-            statusSelecao: acertou ? 'Ganhou' : 'Perdeu',
-          }
-        },
-      )
-
-      let novoStatus = 'Pendente'
-
-      if (possuiEscolhaPerdida) {
-        novoStatus = 'Perdeu'
-        bilhetesPerdidos += 1
-      } else if (todasAsEscolhasForamResolvidas) {
-        novoStatus = 'Ganhou'
-        bilhetesGanhos += 1
-        premioTotal += Number(aposta.retornoEstimado) || 0
-      }
-
-      return {
-        ...aposta,
-        selecoes: selecoesAtualizadas,
-        status: novoStatus,
-        ...(novoStatus !== 'Pendente'
-          ? {
-              resolvidaEm: resolvidoEm,
-              resolucao: 'Automática',
-            }
-          : {}),
-      }
-    })
-
-    setEventos(eventosAtualizados)
-    setHistorico(historicoAtualizado)
-
-    localStorage.setItem(
-      'taihenbet-eventos',
-      JSON.stringify(eventosAtualizados),
-    )
-
-    localStorage.setItem(
-      'taihenbet-historico',
-      JSON.stringify(historicoAtualizado),
-    )
+    await carregarApostasEsportivasAutoritativas()
+    await carregarApostasEsportesAdmin()
 
     setSelecoes((selecoesAtuais) =>
       selecoesAtuais.filter(
-        (selecao) =>
-          String(selecao.eventoId) !== String(mercadoId),
+        (selecao) => String(selecao.eventoId) !== String(mercadoId),
       ),
     )
 
-    if (premioTotal > 0) {
-      setSaldo((saldoAtual) => saldoAtual + premioTotal)
+    const ganhou = Number(result?.wonBets) || 0
+    const perdeu = Number(result?.lostBets) || 0
+    const payout = Number(result?.payoutTotal) || 0
+
+    let texto = `Resultado oficial: "${result?.winnerName || opcaoVencedora.nome}".`
+
+    if (ganhou > 0) {
+      texto += ` ${ganhou} bilhete(s) receberam ${formatarMoedas(payout)} TaiCoins pelo servidor.`
     }
 
-    let texto = `Resultado definido: "${opcaoVencedora.nome}".`
-
-    if (bilhetesGanhos > 0) {
-      texto += ` ${bilhetesGanhos} bilhete(s) ganharam ${formatarMoedas(
-        premioTotal,
-      )} TaiCoins.`
+    if (perdeu > 0) {
+      texto += ` ${perdeu} bilhete(s) foram destruídos pela banca.`
     }
 
-    if (bilhetesPerdidos > 0) {
-      texto += ` ${bilhetesPerdidos} bilhete(s) foram destruídos pela banca.`
+    if (ganhou === 0 && perdeu === 0) {
+      texto += ' Nenhum bilhete completo foi liquidado com este resultado.'
     }
 
-    if (bilhetesGanhos === 0 && bilhetesPerdidos === 0) {
-      texto +=
-        ' Nenhum bilhete foi encerrado ainda, pois podem existir combinadas pendentes.'
-    }
-
-    setMensagem({
-      tipo: 'sucesso',
-      texto,
-    })
+    setMensagem({ tipo: 'sucesso', texto })
   }
 
-  function resolverAposta(apostaId, resultado) {
-    const apostaEncontrada = historico.find(
-      (aposta) => aposta.id === apostaId,
+  async function resolverAposta(apostaId, resultado) {
+    const apostaEncontrada = historicoEsportesAdmin.find(
+      (aposta) => String(aposta.id) === String(apostaId),
     )
 
-    if (
-      !apostaEncontrada ||
-      apostaEncontrada.status !== 'Pendente'
-    ) {
+    if (!apostaEncontrada || apostaEncontrada.status !== 'Pendente') {
       setMensagem({
         tipo: 'erro',
-        texto: 'Essa aposta já foi resolvida.',
+        texto: 'Esse bilhete já foi resolvido ou não pertence ao arquivo autoritativo.',
       })
-
       return
     }
 
-    const novoStatus =
-      resultado === 'ganhou' ? 'Ganhou' : 'Perdeu'
-    const resolvidaEm = new Date().toLocaleString('pt-BR')
-
-    const novoHistorico = historico.map((aposta) => {
-      if (aposta.id !== apostaId) {
-        return aposta
-      }
-
-      return {
-        ...aposta,
-        status: novoStatus,
-        resolvidaEm,
-        resolucao: 'Manual',
-      }
-    })
-
-    setHistorico(novoHistorico)
-
-    localStorage.setItem(
-      'taihenbet-historico',
-      JSON.stringify(novoHistorico),
+    const { data, error } = await supabase.rpc(
+      'admin_resolve_sports_bet',
+      {
+        p_bet_id: apostaId,
+        p_result: resultado,
+      },
     )
 
-    if (resultado === 'ganhou') {
-      const premio = Number(apostaEncontrada.retornoEstimado)
-
-      setSaldo((saldoAtual) => saldoAtual + premio)
-
+    if (error) {
+      console.error('Falha ao resolver bilhete manualmente:', error)
       setMensagem({
-        tipo: 'sucesso',
-        texto: `Aposta vencedora! ${formatarMoedas(
-          premio,
-        )} TaiCoins foram entregues. A banca está chorando.`,
+        tipo: 'erro',
+        texto: 'A banca não conseguiu aplicar a resolução manual no servidor.',
       })
-
       return
     }
 
+    await carregarApostasEsportesAdmin()
+    await carregarApostasEsportivasAutoritativas()
+
+    const bet = Array.isArray(data) ? data[0] : data
+    const venceu = bet?.status === 'Ganhou'
+
     setMensagem({
-      tipo: 'erro',
-      texto: `Aposta perdida. A banca agradece pelas ${formatarMoedas(
-        apostaEncontrada.valor,
-      )} TaiCoins sacrificadas.`,
+      tipo: venceu ? 'sucesso' : 'erro',
+      texto: venceu
+        ? `Bilhete liquidado manualmente. ${formatarMoedas(bet?.retornoPago || bet?.retornoEstimado)} TaiCoins foram pagos pelo servidor.`
+        : `Bilhete marcado como perdido no servidor. A stake original permanece no ledger.`,
     })
   }
 
-  function debitarEntradaDerby(valor) {
+  async function iniciarDerbyAutoritativo(valor, corredoraId) {
     const valorNumerico = Number(valor)
 
-    if (
-      !Number.isFinite(valorNumerico) ||
-      valorNumerico < 10
-    ) {
+    if (!Number.isFinite(valorNumerico) || valorNumerico < 10) {
       setMensagem({
         tipo: 'erro',
-        texto: 'A aposta mínima do Derby é de 10 TaiCoins.',
+        texto: 'A aposta minima do Derby e de 10 TaiCoins.',
       })
-      return false
+      return null
     }
 
-    if (valorNumerico > saldoAtualRef.current) {
+    if (!authSession?.user) {
       setMensagem({
         tipo: 'erro',
-        texto: 'Você não possui TaiCoins suficientes para esse bilhete.',
+        texto: 'Entre na sua conta para registrar um bilhete do Derby.',
       })
-      return false
+      return null
     }
 
-    const novoSaldo = Math.max(
-      0,
-      saldoAtualRef.current - valorNumerico,
-    )
+    const { data, error } = await supabase.rpc('start_derby', {
+      p_stake: valorNumerico,
+      p_selected_runner: corredoraId,
+    })
 
-    saldoAtualRef.current = novoSaldo
-    setSaldo(novoSaldo)
-    setMensagem(null)
+    if (error) {
+      console.error('Falha ao iniciar Derby autoritativo:', error)
+      setMensagem({
+        tipo: 'erro',
+        texto:
+          error.message?.includes('Insufficient TaiCoins')
+            ? 'Voce nao possui TaiCoins suficientes para esse bilhete.'
+            : 'A banca nao conseguiu selar o resultado do Derby no servidor.',
+      })
+      return null
+    }
 
-    return true
+    const estado = Array.isArray(data) ? data[0] : data
+
+    if (!estado?.sessionId || !estado?.profile) {
+      console.error('Resposta invalida de start_derby:', estado)
+      setMensagem({
+        tipo: 'erro',
+        texto: 'O servidor devolveu uma corrida invalida do Derby.',
+      })
+      return null
+    }
+
+    aplicarPerfilDaCarteira(estado.profile)
+    return estado
   }
 
-  function finalizarCorridaDerby(resultado) {
-    const ganhou = Boolean(resultado.ganhou)
-    const premio = ganhou
-      ? Math.max(0, Number(resultado.premio) || 0)
-      : 0
-    const valor = Math.max(
-      0,
-      Number(resultado.valor) || 0,
-    )
-    const agora = Date.now()
-
-    if (premio > 0) {
-      const novoSaldo =
-        saldoAtualRef.current + premio
-
-      saldoAtualRef.current = novoSaldo
-      setSaldo(novoSaldo)
+  async function consultarDerbyAutoritativo(sessionId = null) {
+    if (!authSession?.user) {
+      return null
     }
 
+    const { data, error } = await supabase.rpc('get_derby', {
+      p_session_id: sessionId || null,
+    })
+
+    if (error) {
+      console.error('Falha ao consultar Derby autoritativo:', error)
+      return null
+    }
+
+    const estado = Array.isArray(data) ? data[0] : data
+
+    if (estado?.encerrada && estado?.profile) {
+      aplicarPerfilDaCarteira(estado.profile)
+    }
+
+    return estado || null
+  }
+
+  async function finalizarCorridaDerbyAutoritativa(resultado) {
+    if (!resultado?.roundId || !resultado?.encerrada) {
+      return
+    }
+
+    const ganhou = Boolean(resultado.ganhou)
+    const premio = Math.max(0, Number(resultado.premio) || 0)
+    const valor = Math.max(0, Number(resultado.entrada) || 0)
+    const odd = Math.max(1, Number(resultado.selectedOdd || resultado.odd) || 1)
+    const agora = Number.isFinite(Date.parse(resultado.settledAt))
+      ? Date.parse(resultado.settledAt)
+      : Date.now()
+    const idHistorico = `derby-${resultado.roundId}`
+    const nomeEscolhida =
+      resultado.selectedRunnerName ||
+      resultado.corredoraEscolhida?.nome ||
+      resultado.selectedRunner ||
+      'Corredora desconhecida'
+    const nomeVencedora =
+      resultado.winnerRunnerName ||
+      resultado.corredoraVencedora?.nome ||
+      resultado.winnerRunner ||
+      'Corredora desconhecida'
+
     const novaAposta = {
-      id: crypto.randomUUID(),
+      id: idHistorico,
       tipo: 'derby',
       data: new Date(agora).toLocaleString('pt-BR'),
       criadaEm: agora,
@@ -1295,113 +1932,421 @@ function App() {
       resolucao: 'Taihen Derby',
       selecoes: [
         {
-          eventoId: `taihen-derby-${agora}`,
+          eventoId: `taihen-derby-${resultado.roundId}`,
           eventoTitulo: 'Taihen Derby',
-          opcaoId:
-            resultado.corredoraEscolhida.id,
-          opcaoNome:
-            resultado.corredoraEscolhida.nome,
-          odd: Number(resultado.odd),
-          statusSelecao: ganhou
-            ? 'Ganhou'
-            : 'Perdeu',
+          opcaoId: resultado.selectedRunner,
+          opcaoNome: nomeEscolhida,
+          odd,
+          statusSelecao: ganhou ? 'Ganhou' : 'Perdeu',
         },
       ],
-      vencedoraDerby:
-        resultado.corredoraVencedora.nome,
+      vencedoraDerby: nomeVencedora,
       valor,
-      oddTotal: Number(resultado.odd),
-      retornoEstimado:
-        valor * Number(resultado.odd),
+      oddTotal: odd,
+      retornoEstimado: valor * odd,
       retornoPago: premio,
       status: ganhou ? 'Ganhou' : 'Perdeu',
+      authoritative: true,
+      roundId: resultado.roundId,
     }
 
     setHistorico((historicoAtual) => {
-      const novoHistorico = [
-        novaAposta,
-        ...historicoAtual,
-      ]
+      if (historicoAtual.some((item) => item.id === idHistorico)) {
+        return historicoAtual
+      }
 
-      localStorage.setItem(
-        'taihenbet-historico',
-        JSON.stringify(novoHistorico),
-      )
-
+      const novoHistorico = [novaAposta, ...historicoAtual]
+      salvarHistoricoNoNavegador('taihenbet-historico', novoHistorico)
       return novoHistorico
     })
 
-    if (
-      !ganhou &&
-      saldoAtualRef.current <= 0
-    ) {
+    if (!ganhou && saldoAtualRef.current <= 0) {
       abrirFalencia()
     }
 
     setMensagem({
       tipo: ganhou ? 'sucesso' : 'erro',
       texto: ganhou
-        ? `${resultado.corredoraVencedora.nome} venceu! +${formatarMoedas(
-            premio,
-          )} TaiCoins foram liberadas.`
-        : `${resultado.corredoraVencedora.nome} venceu o Derby. Seu bilhete em ${resultado.corredoraEscolhida.nome} foi derrotado.`,
+        ? `${nomeVencedora} venceu! +${formatarMoedas(premio)} TaiCoins foram liquidadas pelo servidor.`
+        : `${nomeVencedora} venceu o Derby. Seu bilhete em ${nomeEscolhida} foi derrotado.`,
     })
   }
 
-  function debitarEntradaJogo(valor) {
-    const valorNumerico = Number(valor)
-
-    if (
-      !Number.isFinite(valorNumerico) ||
-      valorNumerico < 10
-    ) {
-      setMensagem({
-        tipo: 'erro',
-        texto: 'A entrada mínima dos jogos é de 10 TaiCoins.',
-      })
-
-      return false
+  async function carregarTaiMandiocaAutoritativa() {
+    if (!authSession?.user) {
+      return null
     }
 
-    if (valorNumerico > saldo) {
-      setMensagem({
-        tipo: 'erro',
-        texto: 'Você não possui TaiCoins suficientes para iniciar o jogo.',
-      })
-
-      return false
-    }
-
-    const novoSaldo = Math.max(
-      0,
-      saldoAtualRef.current - valorNumerico,
+    const { data, error } = await supabase.rpc(
+      'get_active_taimandioca',
     )
 
-    saldoAtualRef.current = novoSaldo
-    setSaldo(novoSaldo)
-    setMensagem(null)
+    if (error) {
+      console.error('Falha ao restaurar TaiMandioca autoritativa:', error)
+      return null
+    }
 
-    return true
+    const estado = Array.isArray(data) ? data[0] : data
+
+    if (estado?.profile) {
+      aplicarPerfilDaCarteira(estado.profile)
+    }
+
+    return estado || null
   }
 
-  function finalizarJogo(resultado) {
+  async function iniciarTaiMandiocaAutoritativa(valor, perigos) {
+    const valorNumerico = Number(valor)
+    const perigosNumericos = Number(perigos)
+
+    if (!Number.isFinite(valorNumerico) || valorNumerico < 10) {
+      setMensagem({
+        tipo: 'erro',
+        texto: 'A entrada mínima da TaiMandioca é de 10 TaiCoins.',
+      })
+      return null
+    }
+
+    if (![3, 5, 7, 10].includes(perigosNumericos)) {
+      setMensagem({
+        tipo: 'erro',
+        texto: 'A banca recusou essa configuração de plantação.',
+      })
+      return null
+    }
+
+    if (!authSession?.user) {
+      setMensagem({
+        tipo: 'erro',
+        texto: 'Entre na sua conta para iniciar uma colheita.',
+      })
+      return null
+    }
+
+    const { data, error } = await supabase.rpc(
+      'start_taimandioca',
+      {
+        p_stake: valorNumerico,
+        p_hazards: perigosNumericos,
+      },
+    )
+
+    if (error) {
+      console.error('Falha ao iniciar TaiMandioca autoritativa:', error)
+      setMensagem({
+        tipo: 'erro',
+        texto:
+          error.message?.includes('Insufficient TaiCoins')
+            ? 'Você não possui TaiCoins suficientes para entrar nessa roça.'
+            : 'A banca não conseguiu selar a plantação no servidor.',
+      })
+      return null
+    }
+
+    const estado = Array.isArray(data) ? data[0] : data
+
+    if (!estado?.sessionId || !estado?.profile) {
+      console.error('Resposta inválida de start_taimandioca:', estado)
+      setMensagem({
+        tipo: 'erro',
+        texto: 'O servidor devolveu uma plantação inválida.',
+      })
+      return null
+    }
+
+    aplicarPerfilDaCarteira(estado.profile)
+    return estado
+  }
+
+  async function revelarTaiMandiocaAutoritativa(sessionId, indice) {
+    if (!authSession?.user || !sessionId) {
+      return null
+    }
+
+    const { data, error } = await supabase.rpc(
+      'reveal_taimandioca',
+      {
+        p_session_id: sessionId,
+        p_index: Number(indice),
+      },
+    )
+
+    if (error) {
+      console.error('Falha ao revelar TaiMandioca autoritativa:', error)
+      setMensagem({
+        tipo: 'erro',
+        texto: 'A banca não conseguiu consultar essa mandioca no servidor.',
+      })
+      return null
+    }
+
+    const estado = Array.isArray(data) ? data[0] : data
+
+    if (!estado?.sessionId) {
+      console.error('Resposta inválida de reveal_taimandioca:', estado)
+      return null
+    }
+
+    if (estado.profile) {
+      aplicarPerfilDaCarteira(estado.profile)
+    }
+
+    return estado
+  }
+
+  async function recolherTaiMandiocaAutoritativa(sessionId) {
+    if (!authSession?.user || !sessionId) {
+      return null
+    }
+
+    const { data, error } = await supabase.rpc(
+      'cashout_taimandioca',
+      { p_session_id: sessionId },
+    )
+
+    if (error) {
+      console.error('Falha no cashout autoritativo da TaiMandioca:', error)
+      setMensagem({
+        tipo: 'erro',
+        texto: 'A banca não conseguiu liquidar sua colheita.',
+      })
+      return null
+    }
+
+    const estado = Array.isArray(data) ? data[0] : data
+
+    if (!estado?.sessionId || !estado?.profile) {
+      console.error('Resposta inválida de cashout_taimandioca:', estado)
+      return null
+    }
+
+    aplicarPerfilDaCarteira(estado.profile)
+    return estado
+  }
+
+  async function consultarCrashRegimeAutoritativo(sessionId = null) {
+    if (!authSession?.user) {
+      return null
+    }
+
+    const { data, error } = await supabase.rpc(
+      'get_crash_regime',
+      { p_session_id: sessionId || null },
+    )
+
+    if (error) {
+      console.error('Falha ao consultar Crash autoritativo:', error)
+      return null
+    }
+
+    const estado = Array.isArray(data) ? data[0] : data
+
+    // Durante a operação o saldo já é o pós-stake carregado no início.
+    // Ao encerrar, reaplicamos o perfil retornado pelo servidor.
+    if (estado?.status !== 'active' && estado?.profile) {
+      aplicarPerfilDaCarteira(estado.profile)
+    }
+
+    return estado || null
+  }
+
+  async function iniciarCrashRegimeAutoritativo(valor) {
+    const valorNumerico = Number(valor)
+
+    if (!Number.isFinite(valorNumerico) || valorNumerico < 10) {
+      setMensagem({
+        tipo: 'erro',
+        texto: 'A entrada mínima do Crash do Regime é de 10 TaiCoins.',
+      })
+      return null
+    }
+
+    if (!authSession?.user) {
+      setMensagem({
+        tipo: 'erro',
+        texto: 'Entre na sua conta para financiar uma operação do regime.',
+      })
+      return null
+    }
+
+    const { data, error } = await supabase.rpc(
+      'start_crash_regime',
+      { p_stake: valorNumerico },
+    )
+
+    if (error) {
+      console.error('Falha ao iniciar Crash autoritativo:', error)
+      setMensagem({
+        tipo: 'erro',
+        texto:
+          error.message?.includes('Insufficient TaiCoins')
+            ? 'Você não possui TaiCoins suficientes para essa operação.'
+            : 'A banca não conseguiu selar o ponto de confisco no servidor.',
+      })
+      return null
+    }
+
+    const estado = Array.isArray(data) ? data[0] : data
+
+    if (!estado?.sessionId || !estado?.profile) {
+      console.error('Resposta inválida de start_crash_regime:', estado)
+      setMensagem({
+        tipo: 'erro',
+        texto: 'O servidor devolveu uma operação inválida do regime.',
+      })
+      return null
+    }
+
+    aplicarPerfilDaCarteira(estado.profile)
+    return estado
+  }
+
+  async function retirarCrashRegimeAutoritativo(sessionId) {
+    if (!authSession?.user || !sessionId) {
+      return null
+    }
+
+    const { data, error } = await supabase.rpc(
+      'cashout_crash_regime',
+      { p_session_id: sessionId },
+    )
+
+    if (error) {
+      console.error('Falha no cashout autoritativo do Crash:', error)
+      setMensagem({
+        tipo: 'erro',
+        texto: 'O fiscal não conseguiu validar sua retirada no servidor.',
+      })
+      return null
+    }
+
+    const estado = Array.isArray(data) ? data[0] : data
+
+    if (!estado?.sessionId || !estado?.profile) {
+      console.error('Resposta inválida de cashout_crash_regime:', estado)
+      return null
+    }
+
+    aplicarPerfilDaCarteira(estado.profile)
+    return estado
+  }
+
+  async function jogarTaigrinhoAutoritativo(valor) {
+    const valorNumerico = Number(valor)
+
+    if (!Number.isFinite(valorNumerico) || valorNumerico < 10) {
+      setMensagem({
+        tipo: 'erro',
+        texto: 'A entrada mínima do Taigrinho é de 10 TaiCoins.',
+      })
+      return null
+    }
+
+    if (!authSession?.user) {
+      setMensagem({
+        tipo: 'erro',
+        texto: 'Entre na sua conta para girar o Taigrinho.',
+      })
+      return null
+    }
+
+    const { data, error } = await supabase.rpc(
+      'play_taigrinho',
+      { p_stake: valorNumerico },
+    )
+
+    if (error) {
+      console.error('Falha no Taigrinho autoritativo:', error)
+      setMensagem({
+        tipo: 'erro',
+        texto:
+          error.message?.includes('Insufficient TaiCoins')
+            ? 'Você não possui TaiCoins suficientes para esse giro.'
+            : 'A banca não conseguiu selar o giro no servidor.',
+      })
+      return null
+    }
+
+    const rodada = Array.isArray(data) ? data[0] : data
+
+    if (
+      !rodada?.roundId ||
+      !Array.isArray(rodada.grade) ||
+      !rodada.profile
+    ) {
+      console.error('Resposta inválida de play_taigrinho:', rodada)
+      setMensagem({
+        tipo: 'erro',
+        texto: 'O servidor devolveu uma rodada inválida do Taigrinho.',
+      })
+      return null
+    }
+
+    // O banco já liquidou a rodada inteira atomicamente, mas durante a
+    // animação mostramos apenas o saldo após a entrada para não revelar
+    // visualmente um prêmio antes de o último rolo parar.
+    const saldoDepoisDaEntrada = Math.max(
+      0,
+      Number(rodada.balanceAfterStake) || 0,
+    )
+
+    setProfile((perfilAtual) =>
+      perfilAtual
+        ? { ...perfilAtual, balance: saldoDepoisDaEntrada }
+        : perfilAtual,
+    )
+    saldoAtualRef.current = saldoDepoisDaEntrada
+    setSaldo(saldoDepoisDaEntrada)
+
+    return rodada
+  }
+
+  async function finalizarJogo(resultado) {
     const premio = Math.max(
       0,
       Number(resultado.premio) || 0,
     )
+    const walletSettled = Boolean(resultado.walletSettled)
+    const walletProfile = resultado.walletProfile || null
 
-    if (premio > 0) {
-      const novoSaldo =
-        saldoAtualRef.current + premio
+    if (walletSettled) {
+      if (!walletProfile) {
+        setMensagem({
+          tipo: 'erro',
+          texto: 'A rodada foi liquidada, mas a banca perdeu o comprovante do saldo.',
+        })
+        return
+      }
 
-      saldoAtualRef.current = novoSaldo
-      setSaldo(novoSaldo)
+      aplicarPerfilDaCarteira(walletProfile)
+    } else if (premio > 0) {
+      // Desde a Fase 3.9, todo prêmio dos Jogos da Entidade precisa nascer
+      // da RPC autoritativa do próprio jogo. Nunca reabrimos uma ponte
+      // genérica de crédito baseada em valores calculados no navegador.
+      console.error(
+        'Payout não autoritativo recusado pela banca:',
+        resultado,
+      )
+      setMensagem({
+        tipo: 'erro',
+        texto:
+          'A banca recusou um prêmio não autoritativo. Atualize a página e tente a rodada novamente.',
+      })
+      return
     }
+
+    const agoraRegistro = Date.now()
+    const {
+      walletProfile: _walletProfile,
+      walletSettled: _walletSettled,
+      ...resultadoPersistivel
+    } = resultado
 
     const novoRegistro = {
       id: crypto.randomUUID(),
-      data: new Date().toLocaleString('pt-BR'),
-      ...resultado,
+      data: new Date(agoraRegistro).toLocaleString('pt-BR'),
+      criadaEm: agoraRegistro,
+      ...resultadoPersistivel,
       premio,
       lucro:
         Number(resultado.lucro) ||
@@ -1412,6 +2357,26 @@ function App() {
       novoRegistro,
       ...historicoAtual,
     ])
+
+    void enviarNotificacaoPessoal({
+      tipo: 'game_result',
+      titulo:
+        novoRegistro.status === 'Ganhou'
+          ? `${novoRegistro.jogo || 'Jogo'} pagou!`
+          : `${novoRegistro.jogo || 'Jogo'} cobrou a taxa de sofrimento`,
+      texto:
+        novoRegistro.status === 'Ganhou'
+          ? `Resultado liquidado: +${formatarMoedas(Math.max(0, Number(novoRegistro.lucro) || 0))} TaiCoins de lucro líquido.`
+          : `Resultado liquidado: ${formatarMoedas(Number(novoRegistro.lucro) || 0)} TaiCoins no currículo financeiro.`,
+      paginaDestino: 'historico',
+      entidadeId: String(novoRegistro.id),
+      metadata: {
+        jogo: novoRegistro.jogo || null,
+        status: novoRegistro.status || null,
+        premio,
+        lucro: Number(novoRegistro.lucro) || 0,
+      },
+    })
 
     if (
       novoRegistro.status !== 'Ganhou' &&
@@ -1438,25 +2403,30 @@ function App() {
     })
   }
 
-  function receberBonusJogo(valor) {
-    const valorNumerico = Math.max(0, Number(valor) || 0)
+  async function receberBonusJogo() {
+    const hoje = new Date().toISOString().slice(0, 10)
+    const perfilAtualizado = await executarRpcCarteira(
+      'claim_daily_bonus',
+      { p_claim_date: hoje },
+      'A bênção diária já foi recebida hoje ou a banca recusou o pedido.',
+    )
 
-    if (valorNumerico <= 0) {
-      return
-    }
-
-    const novoSaldo =
-      saldoAtualRef.current + valorNumerico
-
-    saldoAtualRef.current = novoSaldo
-    setSaldo(novoSaldo)
+    if (!perfilAtualizado) return false
 
     setMensagem({
       tipo: 'sucesso',
-      texto: `Bênção diária recebida: +${formatarMoedas(
-        valorNumerico,
-      )} TaiCoins.`,
+      texto: 'Bênção diária recebida: +250 TaiCoins.',
     })
+
+    void enviarNotificacaoPessoal({
+      tipo: 'bonus',
+      titulo: 'A Entidade foi generosa',
+      texto: 'Bênção diária recebida: +250 TaiCoins foram creditadas na sua carteira.',
+      paginaDestino: 'jogos',
+      metadata: { amount: 250 },
+    })
+
+    return true
   }
 
   function limparHistorico() {
@@ -1469,7 +2439,7 @@ function App() {
     }
 
     setHistorico([])
-    localStorage.removeItem('taihenbet-historico')
+    localStorage.removeItem(chaveHistoricoLocal('taihenbet-historico'))
 
     setMensagem({
       tipo: 'sucesso',
@@ -1493,6 +2463,8 @@ function App() {
         ?.scrollIntoView({ behavior: 'smooth' })
     }, 80)
   }
+
+  const podeAcessarPainel = profile?.role === 'admin'
 
   return (
     <div className="app">
@@ -1817,6 +2789,41 @@ function App() {
         </div>
       )}
 
+      {authModalMode && (
+        <AuthModal
+          initialMode={authModalMode}
+          onClose={() => setAuthModalMode(null)}
+        />
+      )}
+
+      {profileModalOpen && authSession?.user && profile && (
+        <ProfileModal
+          session={authSession}
+          profile={profile}
+          saldo={saldo}
+          historico={historico}
+          historicoJogos={historicoJogos}
+          onSaved={salvarPerfilLocal}
+          onClose={() => setProfileModalOpen(false)}
+        />
+      )}
+
+      {legacyBalancePrompt && authSession?.user && profile && (
+        <LegacyBalanceModal
+          onResolved={resolverSaldoLegado}
+        />
+      )}
+
+      {legacyHistoryPrompt && authSession?.user && (
+        <LegacyHistoryModal
+          sportsCount={historicoLegadoRef.current.length}
+          gamesCount={historicoJogosLegadoRef.current.length}
+          loading={legacyHistoryLoading}
+          onImport={() => resolverHistoricoLegado(true)}
+          onStartFresh={() => resolverHistoricoLegado(false)}
+        />
+      )}
+
       <NeytaiAssistant
         enabled={
           !avisoInicialAtivo &&
@@ -1825,6 +2832,7 @@ function App() {
         }
         pagina={pagina}
         onNavigate={navegarPara}
+        isAdmin={podeAcessarPainel}
       />
 
       <header className="header">
@@ -1859,6 +2867,14 @@ function App() {
           </button>
 
           <button
+            data-neytai-target="nav-feed"
+            className={pagina === 'feed' ? 'active' : ''}
+            onClick={() => navegarPara('feed')}
+          >
+            Feed
+          </button>
+
+          <button
             data-neytai-target="nav-jogos"
             className={pagina === 'jogos' ? 'active' : ''}
             onClick={() => navegarPara('jogos')}
@@ -1883,11 +2899,51 @@ function App() {
           </button>
 
           <button
+            data-neytai-target="nav-grupo"
+            className={pagina === 'grupo' ? 'active' : ''}
+            onClick={() => navegarPara('grupo')}
+          >
+            Grupo
+          </button>
+
+          <button
             data-neytai-target="nav-ranking"
             className={pagina === 'ranking' ? 'active' : ''}
             onClick={() => navegarPara('ranking')}
           >
             Ranking
+          </button>
+
+          <button
+            data-neytai-target="nav-progresso"
+            className={pagina === 'progresso' ? 'active' : ''}
+            onClick={() => navegarPara('progresso')}
+          >
+            Conquistas
+          </button>
+
+          <button
+            data-neytai-target="nav-missoes"
+            className={pagina === 'missoes' ? 'active' : ''}
+            onClick={() => navegarPara('missoes')}
+          >
+            Missões
+          </button>
+
+          <button
+            data-neytai-target="nav-evento"
+            className={pagina === 'evento' ? 'active' : ''}
+            onClick={() => navegarPara('evento')}
+          >
+            Evento
+          </button>
+
+          <button
+            data-neytai-target="nav-loja"
+            className={pagina === 'loja' ? 'active' : ''}
+            onClick={() => navegarPara('loja')}
+          >
+            Loja
           </button>
 
           <button
@@ -1906,37 +2962,71 @@ function App() {
             Para a Tai
           </button>
 
-          <button
-            data-neytai-target="nav-painel"
-            className={pagina === 'admin' ? 'active' : ''}
-            onClick={() => navegarPara('admin')}
-          >
-            Painel
-          </button>
+          {creatorMessageUnlocked && (
+            <button
+              data-neytai-target="nav-mensagem-criador"
+              className={`creator-message-nav creator-message-nav-unlocked ${
+                pagina === 'criador' ? 'active' : ''
+              }`}
+              onClick={() => navegarPara('criador')}
+              title="Mensagem do criador"
+            >
+              Recado
+            </button>
+          )}
+
+          {podeAcessarPainel && (
+            <button
+              data-neytai-target="nav-painel"
+              className={pagina === 'admin' ? 'active' : ''}
+              onClick={() => navegarPara('admin')}
+            >
+              Painel
+            </button>
+          )}
         </nav>
 
-        <div
-          className="wallet reward-wallet"
-          data-neytai-target="wallet"
-        >
-          <span>Seu saldo</span>
-
-          <strong>
-            <i className="mini-coin">T</i>
-            {formatarMoedas(saldo)} TaiCoins
-          </strong>
-
-          <button
-            type="button"
-            className="wallet-ad-button"
-            onClick={abrirAnuncioRecompensa}
+        <div className="header-account-zone" data-neytai-target="account-menu">
+          <div
+            className="wallet reward-wallet"
+            data-neytai-target="wallet"
           >
-            Assistir anúncio +20
-          </button>
+            <span>Seu saldo</span>
+
+            <strong>
+              <i className="mini-coin">T</i>
+              {formatarMoedas(saldo)} TaiCoins
+            </strong>
+
+            <button
+              type="button"
+              className="wallet-ad-button"
+              onClick={abrirAnuncioRecompensa}
+            >
+              Assistir anúncio +20
+            </button>
+          </div>
+
+          <NotificationCenter
+            session={authSession}
+            onNavigate={navegarPara}
+          />
+
+          <AccountMenu
+            session={authSession}
+            authReady={authReady}
+            profile={profile}
+            profileReady={profileReady}
+            saldo={saldo}
+            onOpenAuth={setAuthModalMode}
+            onOpenProfile={() => setProfileModalOpen(true)}
+          />
         </div>
       </header>
 
       <main className="page">
+
+        <AccountSuspensionNotice profile={profile} />
 
         {mensagem && (
           <div className={`notification ${mensagem.tipo}`}>
@@ -2006,171 +3096,62 @@ function App() {
             onConfirmarAposta={confirmarAposta}
             onIrParaJogos={() => navegarPara('jogos')}
             onIrParaMuseu={() => navegarPara('museu')}
+            onIrParaAoVivo={() => navegarPara('ao-vivo')}
+            sessaoAoVivo={sessaoAoVivo}
+          />
+        ) : pagina === 'feed' ? (
+          <CommunityFeedPage
+            session={authSession}
+            currentUserId={authSession?.user?.id}
+            onNavigate={navegarPara}
+            onOpenProfile={(userId) => abrirPerfilPublico(userId, 'feed')}
           />
         ) : pagina === 'museu' ? (
-          <MuseumPage />
+          <MuseumPage
+            session={authSession}
+            profile={profile}
+            onOpenAuth={() => setAuthModalMode('login')}
+            onOpenProfile={(userId) => abrirPerfilPublico(userId, 'museu')}
+          />
+        ) : pagina === 'grupo' ? (
+          <GroupPage profile={profile} />
         ) : pagina === 'historico' ? (
-          <section
-            className="history-page"
-            data-neytai-target="history-page"
-          >
-            <div className="history-header">
-              <div>
-                <span className="history-eyebrow">
-                  ARQUIVO DE DECISÕES QUESTIONÁVEIS
-                </span>
-
-                <h1>Histórico de apostas</h1>
-
-                <p>
-                  Todas as TaiCoins colocadas em risco por
-                  motivos absolutamente científicos.
-                </p>
-              </div>
-
-              {historico.length > 0 && (
-                <button
-                  className="clear-history-button"
-                  onClick={limparHistorico}
-                >
-                  Apagar histórico
-                </button>
-              )}
-            </div>
-
-            <div className="history-summary">
-              <article className="history-summary-card">
-                <span>Total de apostas</span>
-                <strong>{historico.length}</strong>
-              </article>
-
-              <article className="history-summary-card">
-                <span>TaiCoins apostadas</span>
-                <strong>{formatarMoedas(totalApostado)}</strong>
-              </article>
-
-              <article className="history-summary-card">
-                <span>Apostas pendentes</span>
-                <strong>{apostasPendentes}</strong>
-              </article>
-
-              <article className="history-summary-card">
-                <span>Retorno potencial</span>
-                <strong>
-                  {formatarMoedas(retornoPotencialTotal)}
-                </strong>
-              </article>
-            </div>
-
-            {historico.length === 0 ? (
-              <div className="history-empty oracle-history-empty">
-                <div className="oracle-history-image">
-                  <img
-                    src={entidadeBanca}
-                    alt="Entidade da banca"
-                  />
-                </div>
-
-                <span className="oracle-small-label">
-                  O ORÁCULO NÃO ENCONTROU OFERENDAS
-                </span>
-
-                <h2>Nenhuma aposta registrada</h2>
-
-                <p>
-                  Seu histórico está limpo. A entidade considera
-                  isso temporário.
-                </p>
-
-                <button
-                  className="hero-button"
-                  onClick={() => navegarPara('inicio')}
-                >
-                  Fazer primeira aposta
-                </button>
-              </div>
-            ) : (
-              <div className="history-list">
-                {historico.map((aposta, indice) => (
-                  <article
-                    className="history-card"
-                    key={aposta.id}
-                  >
-                    <div className="history-card-top">
-                      <div>
-                        <span className="history-number">
-                          APOSTA #{historico.length - indice}
-                        </span>
-
-                        <h2>{aposta.data}</h2>
-                      </div>
-
-                      <span
-                        className={`history-status status-${aposta.status.toLowerCase()}`}
-                      >
-                        {aposta.status}
-                      </span>
-                    </div>
-
-                    <div className="history-selections">
-                      {aposta.selecoes.map((selecao) => (
-                        <div
-                          className="history-selection"
-                          key={selecao.opcaoId}
-                        >
-                          <div>
-                            <span>{selecao.eventoTitulo}</span>
-                            <strong>{selecao.opcaoNome}</strong>
-                          </div>
-
-                          <b>{Number(selecao.odd).toFixed(2)}</b>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="history-meta">
-                      <div>
-                        <span>Valor apostado</span>
-                        <strong>
-                          {formatarMoedas(aposta.valor)} TaiCoins
-                        </strong>
-                      </div>
-
-                      <div>
-                        <span>Odd total</span>
-                        <strong>
-                          {Number(aposta.oddTotal).toFixed(2)}
-                        </strong>
-                      </div>
-
-                      <div>
-                        <span>Retorno possível</span>
-                        <strong className="possible-return">
-                          {formatarMoedas(
-                            aposta.retornoEstimado,
-                          )}{' '}
-                          TaiCoins
-                        </strong>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </section>
+          <HistoryPage
+            sports={historico}
+            games={historicoJogos}
+            synced={Boolean(authSession?.user && historyReady)}
+            onNavigate={navegarPara}
+          />
         ) : pagina === 'para-tai' ? (
           <FinalMessagePage
+            session={authSession}
+            profile={profile}
+            onOpenAuth={() => setAuthModalMode('login')}
             onVoltarInicio={() => navegarPara('inicio')}
+            onOpenProfile={(userId) => abrirPerfilPublico(userId, 'para-tai')}
+          />
+        ) : pagina === 'criador' && creatorMessageUnlocked ? (
+          <CreatorMessagePage
+            onVoltarInicio={() => navegarPara('inicio')}
+            onVoltarParaTai={() => navegarPara('para-tai')}
           />
         ) : pagina === 'jogos' ? (
           <GamesPage
             saldo={saldo}
             historicoJogos={historicoJogos}
-            onDebitarEntrada={debitarEntradaJogo}
+            onGirarTaigrinho={jogarTaigrinhoAutoritativo}
+            onIniciarTaiMandioca={iniciarTaiMandiocaAutoritativa}
+            onRevelarTaiMandioca={revelarTaiMandiocaAutoritativa}
+            onRecolherTaiMandioca={recolherTaiMandiocaAutoritativa}
+            onCarregarTaiMandioca={carregarTaiMandiocaAutoritativa}
+            onIniciarCrash={iniciarCrashRegimeAutoritativo}
+            onConsultarCrash={consultarCrashRegimeAutoritativo}
+            onRetirarCrash={retirarCrashRegimeAutoritativo}
             onFinalizarJogo={finalizarJogo}
             onReceberBonus={receberBonusJogo}
-            onDebitarEntradaDerby={debitarEntradaDerby}
-            onFinalizarCorridaDerby={finalizarCorridaDerby}
+            onIniciarDerby={iniciarDerbyAutoritativo}
+            onConsultarDerby={consultarDerbyAutoritativo}
+            onFinalizarCorridaDerby={finalizarCorridaDerbyAutoritativa}
           />
         ) : pagina === 'ao-vivo' ? (
           <div
@@ -2192,17 +3173,91 @@ function App() {
             data-neytai-target="ranking-page"
           >
             <RankingPage
-              historico={historico}
-              saldo={saldo}
+              currentUserId={authSession?.user?.id}
+              refreshKey={`${saldo}:${historico.length}:${historicoJogos.length}:${pagina}`}
+              onOpenProfile={(userId) => abrirPerfilPublico(userId, 'ranking')}
             />
           </div>
+        ) : pagina === 'progresso' ? (
+          <ProgressionPage
+            session={authSession}
+            profile={profile}
+            sports={historico}
+            games={historicoJogos}
+            onOpenAuth={() => setAuthModalMode('login')}
+            onOpenPublicProfile={() =>
+              abrirPerfilPublico(authSession?.user?.id, 'progresso')
+            }
+            onTitleChanged={(equippedTitleKey) =>
+              setProfile((perfilAtual) =>
+                perfilAtual
+                  ? {
+                      ...perfilAtual,
+                      equipped_title_key: equippedTitleKey,
+                    }
+                  : perfilAtual,
+              )
+            }
+          />
+        ) : pagina === 'missoes' ? (
+          <MissionPage
+            session={authSession}
+            profile={profile}
+            onOpenAuth={() => setAuthModalMode('login')}
+            onProfileChanged={aplicarPerfilDaCarteira}
+            onNavigate={navegarPara}
+          />
+        ) : pagina === 'evento' ? (
+          <EventSeasonPage
+            session={authSession}
+            profile={profile}
+            onOpenAuth={() => setAuthModalMode('login')}
+            onProfileChanged={aplicarPerfilDaCarteira}
+            onNavigate={navegarPara}
+            onOpenProfile={(userId) => abrirPerfilPublico(userId, 'evento')}
+          />
+        ) : pagina === 'loja' ? (
+          <TaiShopPage
+            session={authSession}
+            profile={profile}
+            onOpenAuth={() => setAuthModalMode('login')}
+            onProfileChanged={aplicarPerfilDaCarteira}
+            onOpenPublicProfile={() =>
+              abrirPerfilPublico(authSession?.user?.id, 'loja')
+            }
+          />
+        ) : pagina === 'perfil-publico' ? (
+          <PublicProfilePage
+            userId={publicProfileUserId}
+            currentUserId={authSession?.user?.id}
+            localStats={
+              historyReady && publicProfileUserId === authSession?.user?.id
+                ? calcularSnapshotPerfilPublico(historico, historicoJogos)
+                : null
+            }
+            onBack={voltarDoPerfilPublico}
+            onGoAchievements={() => navegarPara('progresso')}
+            onGoShop={() => navegarPara('loja')}
+          />
+        ) : pagina === 'admin' && !podeAcessarPainel ? (
+          <section className="history-empty oracle-history-empty">
+            <div className="oracle-history-image">
+              <img src={entidadeBanca} alt="Entidade da banca" />
+            </div>
+            <span className="oracle-small-label">ACESSO NEGADO PELA BANCA</span>
+            <h2>Você não possui patente suficiente.</h2>
+            <p>Somente administradores autorizados podem entrar no centro de comando.</p>
+            <button className="hero-button" onClick={() => navegarPara('inicio')}>
+              Voltar para a civilização
+            </button>
+          </section>
         ) : (
           <div
             className="neytai-tour-page-wrapper"
             data-neytai-target="admin-page"
           >
             <AdminPanel
-              historico={historico}
+              historico={historicoEsportesAdmin}
               eventos={eventos}
               sessaoAoVivo={sessaoAoVivo}
               onResolver={resolverAposta}
@@ -2233,15 +3288,15 @@ function App() {
             />
 
             <div>
-              <strong>TAIHENBET</strong>
-              <span>Sob supervisão do Oráculo das Odds</span>
+              <strong>{siteTexts['footer.brand'] || 'TAIHENBET'}</strong>
+              <span>{siteTexts['footer.subtitle'] || 'Sob supervisão do Oráculo das Odds'}</span>
             </div>
           </div>
 
           <div className="footer-anti-betting">
             <p>
-              Este site é uma paródia antiapostas. Não envolve
-              dinheiro, prêmios ou apostas reais.
+              {siteTexts['footer.disclaimer'] ||
+                'Este site é uma paródia antiapostas. Não envolve dinheiro, prêmios ou apostas reais.'}
             </p>
 
             <button

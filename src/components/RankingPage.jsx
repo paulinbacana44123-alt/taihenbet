@@ -1,371 +1,235 @@
+import { useEffect, useMemo, useState } from 'react'
+import { supabase } from '../lib/supabase'
+import { avatarDoPerfil } from '../data/profileAvatars'
 import './RankingPage.css'
-import entidadeBanca from '../assets/entidade-banca.png'
+import { useAchievementCatalog } from '../hooks/useEditableContent'
 
-const participantesBase = [
-  {
-    id: 'taihen',
-    nome: 'Taihen',
-    titulo: 'Dona da banca',
-    avatar: 'T',
-    saldo: 12540,
-    apostas: 48,
-    ganhas: 31,
-    perdidas: 12,
-  },
-  {
-    id: 'pietro',
-    nome: 'Pietro',
-    titulo: 'Especialista em decisões ruins',
-    avatar: 'P',
-    saldo: 4870,
-    apostas: 61,
-    ganhas: 18,
-    perdidas: 39,
-  },
-  {
-    id: 'onion',
-    nome: 'Onion Jr.',
-    titulo: 'Profeta dos onions',
-    avatar: 'O',
-    saldo: 3260,
-    apostas: 27,
-    ganhas: 14,
-    perdidas: 10,
-  },
-  {
-    id: 'chat',
-    nome: 'Chat da madrugada',
-    titulo: 'Apostador coletivo',
-    avatar: 'C',
-    saldo: 740,
-    apostas: 83,
-    ganhas: 20,
-    perdidas: 58,
-  },
-]
+const TITULOS = {
+  primeiro_bilhete: 'Apostador de Schrödinger',
+  analista_bahrein: 'Especialista em Futebol Bareinita',
+  primeira_vitoria: 'Milagre Estatístico',
+  cliente_banca: 'Cliente Preferencial da Banca',
+  domador_taigrinho: 'Domador de Taigrinho',
+  agronomo_risco: 'Agrônomo de Risco',
+  fugitivo_regime: 'Fugitivo do Regime',
+  joquei_mambo: 'Jóquei do Protocolo Mambo',
+  investidor_questionavel: 'Investidor Questionável',
+  inimigo_banca: 'Inimigo da Banca',
+  veterano_ruina: 'Veterano da Ruína',
+}
 
-function formatarNumero(valor) {
+function numero(valor) {
+  const convertido = Number(valor)
+  return Number.isFinite(convertido) ? convertido : 0
+}
+
+function formatar(valor, casas = 0) {
   return new Intl.NumberFormat('pt-BR', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(Number(valor) || 0)
+    minimumFractionDigits: casas,
+    maximumFractionDigits: casas,
+  }).format(numero(valor))
 }
 
-function calcularTaxa(ganhas, perdidas) {
-  const resolvidas = ganhas + perdidas
+function taxa(usuario) {
+  const wins = numero(usuario.wins)
+  const losses = numero(usuario.losses)
+  const total = wins + losses
+  return total > 0 ? (wins / total) * 100 : 0
+}
 
-  if (resolvidas === 0) {
-    return 0
+function RankingPage({ currentUserId, refreshKey, onOpenProfile }) {
+  const { map: achievementCatalog } = useAchievementCatalog()
+  const [ranking, setRanking] = useState([])
+  const [carregando, setCarregando] = useState(true)
+  const [erro, setErro] = useState('')
+
+  async function carregarRanking() {
+    setCarregando(true)
+    setErro('')
+
+    const { data, error } = await supabase.rpc('get_public_ranking_v2')
+
+    if (error) {
+      console.error('Falha ao carregar ranking público:', error)
+      setRanking([])
+      setErro(
+        error.message ||
+          'A banca não conseguiu organizar a fila de investidores.',
+      )
+      setCarregando(false)
+      return
+    }
+
+    setRanking(Array.isArray(data) ? data : [])
+    setCarregando(false)
   }
 
-  return (ganhas / resolvidas) * 100
-}
+  useEffect(() => {
+    void carregarRanking()
+  }, [refreshKey])
 
-function RankingPage({ historico = [], saldo = 0 }) {
-  const ganhas = historico.filter(
-    (aposta) => aposta.status === 'Ganhou',
-  ).length
+  const podium = useMemo(() => ranking.slice(0, 3), [ranking])
 
-  const perdidas = historico.filter(
-    (aposta) => aposta.status === 'Perdeu',
-  ).length
-
-  const pendentes = historico.filter(
-    (aposta) => aposta.status === 'Pendente',
-  ).length
-
-  const totalApostado = historico.reduce(
-    (total, aposta) => total + Number(aposta.valor || 0),
-    0,
-  )
-
-  const premiosRecebidos = historico
-    .filter((aposta) => aposta.status === 'Ganhou')
-    .reduce(
-      (total, aposta) =>
-        total + Number(aposta.retornoEstimado || 0),
-      0,
+  if (carregando) {
+    return (
+      <section className="ranking-state-card">
+        <span>RANKING DA BANCA</span>
+        <h1>Contando TaiCoins alheias...</h1>
+        <p>O auditor ainda está fingindo que entende a planilha.</p>
+      </section>
     )
-
-  const lucroLiquido = premiosRecebidos - totalApostado
-
-  const jogadorAtual = {
-    id: 'voce',
-    nome: 'Paulo',
-    titulo: 'Criador da TaihenBet',
-    avatar: 'P',
-    saldo: Number(saldo) || 0,
-    apostas: historico.length,
-    ganhas,
-    perdidas,
-    pendentes,
   }
 
-  const ranking = [...participantesBase, jogadorAtual].sort(
-    (primeiro, segundo) => segundo.saldo - primeiro.saldo,
-  )
-
-  const posicaoAtual =
-    ranking.findIndex(
-      (participante) => participante.id === 'voce',
-    ) + 1
-
-  const topTres = ranking.slice(0, 3)
-
-  const ordemPodio = [
-    topTres[1],
-    topTres[0],
-    topTres[2],
-  ].filter(Boolean)
-
-  const maiorAzarado = [...ranking].sort(
-    (primeiro, segundo) =>
-      segundo.perdidas - primeiro.perdidas,
-  )[0]
+  if (erro) {
+    return (
+      <section className="ranking-state-card error">
+        <span>ERRO CONTÁBIL</span>
+        <h1>O ranking entrou em recuperação judicial.</h1>
+        <p>{erro}</p>
+        <button type="button" onClick={() => void carregarRanking()}>
+          Tentar de novo
+        </button>
+      </section>
+    )
+  }
 
   return (
-    <section className="ranking-page">
-      <div className="ranking-header">
+    <div className="ranking-page-v2">
+      <header className="ranking-hero-v2">
         <div>
-          <span className="ranking-eyebrow">
-            CLASSIFICAÇÃO ABSOLUTAMENTE CIENTÍFICA
-          </span>
-
-          <h1>Ranking da comunidade</h1>
-
+          <span>FASE 3.16 · ARQUIVO SOCIAL</span>
+          <h1>Ranking oficial da ruína.</h1>
           <p>
-            Quem acumulou mais TaiCoins, quem acertou mais
-            palpites e quem financiou a banca sozinho.
+            Clique em qualquer cliente para abrir a ficha pública, conferir
+            título, conquistas e o tamanho documentado do estrago.
           </p>
         </div>
 
-        <div className="ranking-local-badge">
-          VERSÃO LOCAL / DEMONSTRATIVA
-        </div>
-      </div>
-
-      <div className="ranking-player-summary">
-        <article>
-          <span>Sua posição</span>
-          <strong>#{posicaoAtual}</strong>
-        </article>
-
-        <article>
-          <span>Seu saldo</span>
-          <strong>{formatarNumero(saldo)}</strong>
-        </article>
-
-        <article>
-          <span>Taxa de acerto</span>
-          <strong>
-            {formatarNumero(
-              calcularTaxa(ganhas, perdidas),
-            )}
-            %
-          </strong>
-        </article>
-
-        <article>
-          <span>Lucro líquido</span>
-          <strong
-            className={
-              lucroLiquido >= 0
-                ? 'ranking-positive'
-                : 'ranking-negative'
-            }
-          >
-            {lucroLiquido >= 0 ? '+' : ''}
-            {formatarNumero(lucroLiquido)}
-          </strong>
-        </article>
-      </div>
-
-      <div className="ranking-podium">
-        {ordemPodio.map((participante) => {
-          const posicao =
-            ranking.findIndex(
-              (item) => item.id === participante.id,
-            ) + 1
-
-          return (
-            <article
-              className={`podium-card podium-position-${posicao}`}
-              key={participante.id}
-            >
-              <div className="podium-position">
-                {posicao === 1 ? '★' : posicao}
-              </div>
-
-              <div className="podium-avatar">
-                {participante.avatar}
-              </div>
-
-              <h2>{participante.nome}</h2>
-              <p>{participante.titulo}</p>
-
-              <strong>
-                {formatarNumero(participante.saldo)}
-                <span> TaiCoins</span>
-              </strong>
-
-              <div className="podium-record">
-                <span>{participante.ganhas} vitórias</span>
-                <span>{participante.perdidas} derrotas</span>
-              </div>
-            </article>
-          )
-        })}
-      </div>
-
-      <div className="ranking-content-grid">
-        <div className="ranking-table-card">
-          <div className="ranking-section-heading">
-            <div>
-              <span>CLASSIFICAÇÃO GERAL</span>
-              <h2>Os maiores especialistas</h2>
-            </div>
-
-            <strong>{ranking.length}</strong>
-          </div>
-
-          <div className="ranking-table">
-            <div className="ranking-table-head">
-              <span>#</span>
-              <span>Participante</span>
-              <span>Saldo</span>
-              <span>Apostas</span>
-              <span>V / D</span>
-              <span>Acerto</span>
-            </div>
-
-            {ranking.map((participante, indice) => (
-              <div
-                className={`ranking-table-row ${
-                  participante.id === 'voce'
-                    ? 'ranking-current-player'
-                    : ''
-                }`}
-                key={participante.id}
-              >
-                <strong className="ranking-number">
-                  {indice + 1}
-                </strong>
-
-                <div className="ranking-person">
-                  <div>{participante.avatar}</div>
-
-                  <span>
-                    <strong>
-                      {participante.nome}
-                      {participante.id === 'voce' && (
-                        <em>VOCÊ</em>
-                      )}
-                    </strong>
-
-                    <small>{participante.titulo}</small>
-                  </span>
-                </div>
-
-                <strong className="ranking-balance">
-                  {formatarNumero(participante.saldo)}
-                </strong>
-
-                <span>{participante.apostas}</span>
-
-                <span>
-                  {participante.ganhas} /{' '}
-                  {participante.perdidas}
-                </span>
-
-                <span>
-                  {formatarNumero(
-                    calcularTaxa(
-                      participante.ganhas,
-                      participante.perdidas,
-                    ),
-                  )}
-                  %
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <aside className="ranking-side">
-          <article className="ranking-entity-card">
-            <div className="ranking-entity-image">
-              <img
-                src={entidadeBanca}
-                alt="Mascote oficial da TaihenBet"
-              />
-
-              <span>ENTIDADE DA BANCA</span>
-            </div>
-
-            <div className="ranking-entity-content">
-              <span className="ranking-card-label">
-                O ORÁCULO DAS ODDS
-              </span>
-
-              <h2>A banca está observando.</h2>
-
-              <p>
-                Cada palpite ruim fortalece a entidade oficial
-                da TaihenBet.
-              </p>
-
-              <div className="ranking-entity-verdict">
-                <span>Escolhido do Hall da Vergonha</span>
-
-                <strong>{maiorAzarado.nome}</strong>
-
-                <small>
-                  {maiorAzarado.perdidas} derrotas registradas
-                </small>
-              </div>
-            </div>
-          </article>
-
-          <article className="ranking-your-stats">
-            <span className="ranking-card-label">
-              SEUS NÚMEROS
-            </span>
-
-            <div>
-              <span>Apostas pendentes</span>
-              <strong>{pendentes}</strong>
-            </div>
-
-            <div>
-              <span>Total apostado</span>
-              <strong>
-                {formatarNumero(totalApostado)}
-              </strong>
-            </div>
-
-            <div>
-              <span>Prêmios recebidos</span>
-              <strong>
-                {formatarNumero(premiosRecebidos)}
-              </strong>
-            </div>
-
-            <div>
-              <span>Vitórias / derrotas</span>
-              <strong>
-                {ganhas} / {perdidas}
-              </strong>
-            </div>
-          </article>
+        <aside>
+          <small>CLIENTES RANQUEADOS</small>
+          <strong>{ranking.length}</strong>
         </aside>
-      </div>
+      </header>
 
-      <p className="ranking-disclaimer">
-        Os outros participantes são dados demonstrativos.
-        Quando a TaihenBet tiver login e banco de dados, o
-        ranking poderá ser compartilhado entre usuários reais.
-      </p>
-    </section>
+      {podium.length > 0 && (
+        <section className="ranking-podium-v2">
+          {podium.map((usuario, indice) => {
+            const titulo = achievementCatalog[usuario.equipped_title_key]?.title || TITULOS[usuario.equipped_title_key]
+            const posicao = indice + 1
+
+            return (
+              <button
+                type="button"
+                className={`ranking-podium-card position-${posicao} ${
+                  usuario.id === currentUserId ? 'is-me' : ''
+                }`}
+                key={usuario.id}
+                onClick={() => onOpenProfile?.(usuario.id)}
+              >
+                <span className="ranking-position">#{posicao}</span>
+                <img
+                  src={avatarDoPerfil(usuario.avatar_key).src}
+                  alt={`Avatar de ${usuario.username}`}
+                />
+                <div>
+                  <small>
+                    {usuario.role === 'admin' ? 'ADMIN DA BANCA' : 'CLIENTE'}
+                  </small>
+                  <h2>{usuario.username}</h2>
+                  <em>{titulo || 'Sem título equipado'}</em>
+                </div>
+                <strong>{formatar(usuario.balance, 2)} T</strong>
+              </button>
+            )
+          })}
+        </section>
+      )}
+
+      <section className="ranking-list-shell">
+        <div className="ranking-list-heading">
+          <div>
+            <span>CLASSIFICAÇÃO COMPLETA</span>
+            <h2>Planilha de patrimônio fictício</h2>
+          </div>
+          <button type="button" onClick={() => void carregarRanking()}>
+            Atualizar ranking
+          </button>
+        </div>
+
+        {ranking.length === 0 ? (
+          <div className="ranking-empty-v2">
+            Nenhum cliente encontrado. Até a banca parece preocupada.
+          </div>
+        ) : (
+          <div className="ranking-list-v2">
+            {ranking.map((usuario, indice) => {
+              const decisions =
+                numero(usuario.sports_count) + numero(usuario.games_count)
+              const lucro = numero(usuario.net_profit)
+              const titulo = achievementCatalog[usuario.equipped_title_key]?.title || TITULOS[usuario.equipped_title_key]
+
+              return (
+                <button
+                  type="button"
+                  className={`ranking-row-v2 ${
+                    usuario.id === currentUserId ? 'is-me' : ''
+                  }`}
+                  key={usuario.id}
+                  onClick={() => onOpenProfile?.(usuario.id)}
+                >
+                  <span className="ranking-row-position">
+                    {String(indice + 1).padStart(2, '0')}
+                  </span>
+
+                  <img
+                    src={avatarDoPerfil(usuario.avatar_key).src}
+                    alt=""
+                    aria-hidden="true"
+                  />
+
+                  <div className="ranking-row-person">
+                    <div>
+                      <strong>{usuario.username}</strong>
+                      {usuario.id === currentUserId && <b>VOCÊ</b>}
+                      {usuario.role === 'admin' && <b>ADMIN</b>}
+                    </div>
+                    <small>{titulo || 'Sem título equipado'}</small>
+                  </div>
+
+                  <div className="ranking-row-stat">
+                    <span>Saldo</span>
+                    <strong>{formatar(usuario.balance, 2)} T</strong>
+                  </div>
+
+                  <div className="ranking-row-stat">
+                    <span>Decisões</span>
+                    <strong>{formatar(decisions)}</strong>
+                  </div>
+
+                  <div className="ranking-row-stat">
+                    <span>Acerto</span>
+                    <strong>{formatar(taxa(usuario), 1)}%</strong>
+                  </div>
+
+                  <div
+                    className={`ranking-row-stat ${
+                      lucro >= 0 ? 'positive' : 'negative'
+                    }`}
+                  >
+                    <span>Lucro</span>
+                    <strong>
+                      {lucro >= 0 ? '+' : '−'}{formatar(Math.abs(lucro), 2)}
+                    </strong>
+                  </div>
+
+                  <span className="ranking-open-profile">Ver perfil →</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </section>
+    </div>
   )
 }
 

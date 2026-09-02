@@ -1254,3 +1254,151 @@
     animation: none;
   }
 }
+
+/* ================================================================
+   PHASE 3.8.2b — DERBY RESULT PALETTE CLEANUP
+   Alinha a tela pós-corrida à identidade rosa / vinho / creme / dourado.
+   ================================================================ */
+
+.derby-result-overlay {
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(232, 95, 125, 0.18),
+      rgba(208, 160, 82, 0.055) 34%,
+      transparent 58%
+    ),
+    rgba(5, 3, 6, 0.95);
+}
+
+.derby-result-card {
+  border-color: rgba(232, 95, 125, 0.32);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.055),
+      rgba(232, 95, 125, 0.055) 32%,
+      rgba(208, 160, 82, 0.025) 66%,
+      transparent
+    ),
+    #151014;
+  box-shadow:
+    0 35px 105px rgba(0, 0, 0, 0.6),
+    0 0 65px rgba(232, 95, 125, 0.12);
+}
+
+.derby-result-photo,
+.derby-result-video-shell {
+  border-color: rgba(242, 215, 165, 0.30);
+  box-shadow:
+    0 23px 58px rgba(0, 0, 0, 0.55),
+    0 0 35px rgba(232, 95, 125, 0.10);
+}
+
+.derby-result-video-shell {
+  background:
+    radial-gradient(
+      circle,
+      rgba(232, 95, 125, 0.095),
+      rgba(208, 160, 82, 0.035) 45%,
+      transparent 72%
+    ),
+    #000000;
+}
+
+.derby-result-video-shell > small,
+.derby-result-eyebrow {
+  color: var(--tb-pink-soft);
+}
+
+.derby-result-video-shell > small {
+  border-color: rgba(232, 95, 125, 0.27);
+  background: rgba(30, 15, 21, 0.80);
+}
+
+.derby-result-card p {
+  color: var(--tb-text-soft);
+}
+
+.derby-result-card > strong {
+  color: var(--tb-cream);
+  border-color: rgba(242, 215, 165, 0.22);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(232, 95, 125, 0.10),
+      rgba(208, 160, 82, 0.09)
+    ),
+    #211419;
+}
+
+.derby-result-card > button {
+  background: linear-gradient(
+    135deg,
+    #9e3348,
+    var(--tb-pink) 62%,
+    #d08f4b 120%
+  );
+  box-shadow: 0 12px 28px rgba(185, 59, 80, 0.26);
+}
+
+.derby-result-win .derby-result-card {
+  border-color: rgba(208, 160, 82, 0.48);
+  box-shadow:
+    0 35px 105px rgba(0, 0, 0, 0.60),
+    0 0 58px rgba(208, 160, 82, 0.12);
+}
+
+.derby-result-win .derby-result-card > strong {
+  color: #f6dfaa;
+  border-color: rgba(208, 160, 82, 0.34);
+  background: rgba(208, 160, 82, 0.09);
+}
+
+.derby-result-win .derby-result-video-shell {
+  border-color: rgba(208, 160, 82, 0.48);
+  box-shadow:
+    0 23px 58px rgba(0, 0, 0, 0.55),
+    0 0 38px rgba(208, 160, 82, 0.14);
+}
+
+.derby-result-loss .derby-result-card,
+.derby-result-loss .derby-result-video-shell {
+  border-color: rgba(217, 91, 106, 0.48);
+}
+
+
+/* ================================================================
+   PHASE 3.8.3 — DERBY AUTORITATIVO
+   ================================================================ */
+
+.derby-authoritative-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  padding: 8px 10px;
+  color: #9be6b4;
+  border: 1px solid rgba(73, 199, 116, 0.24);
+  border-radius: 999px;
+  background: rgba(73, 199, 116, 0.07);
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.65px;
+  text-align: right;
+}
+
+.derby-authoritative-badge i {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #58d987;
+  box-shadow: 0 0 11px rgba(88, 217, 135, 0.62);
+}
+
+.derby-track-card.running {
+  box-shadow:
+    0 24px 65px rgba(0, 0, 0, 0.25),
+    0 0 32px rgba(232, 95, 125, 0.08);
+}
