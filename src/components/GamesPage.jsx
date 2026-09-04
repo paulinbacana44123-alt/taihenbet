@@ -177,6 +177,7 @@ function obterSimboloTaigrinho(simboloId) {
 }
 
 const APOSTA_MINIMA_CRASH = 10
+const CRASH_MIN_CASHOUT = 1.1
 const CRASH_POLL_INTERVAL_MS = 500
 const CRASH_POLL_RETRY_MS = 350
 const CRASH_POLL_INITIAL_MS = 250
@@ -1543,6 +1544,14 @@ function GamesPage({
       !rodada.sessionId ||
       crashProcessando
     ) {
+      return
+    }
+
+    // UX apenas: a autoridade real continua no PostgreSQL/Supabase.
+    if (multiplicadorCrashRef.current < CRASH_MIN_CASHOUT) {
+      setMensagemCrash(
+        `A retirada só é liberada a partir de ${CRASH_MIN_CASHOUT.toFixed(2)}x.`,
+      )
       return
     }
 
@@ -3362,7 +3371,11 @@ function GamesPage({
                 className={`regime-main-button ${
                   crashRodando ? 'cashout' : ''
                 }`}
-                disabled={crashProcessando}
+                disabled={
+                  crashProcessando ||
+                  (crashRodando &&
+                    multiplicadorCrash < CRASH_MIN_CASHOUT)
+                }
                 onClick={
                   crashRodando
                     ? () => retirarDoCrash()
@@ -3376,7 +3389,11 @@ function GamesPage({
                   </>
                 ) : crashRodando ? (
                   <>
-                    <span>RETIRAR AGORA</span>
+                    <span>
+                      {multiplicadorCrash < CRASH_MIN_CASHOUT
+                        ? `AGUARDE ${CRASH_MIN_CASHOUT.toFixed(2)}x`
+                        : 'RETIRAR AGORA'}
+                    </span>
                     <strong>
                       {formatarMoedas(
                         retornoCrashAtual,

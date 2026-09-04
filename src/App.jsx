@@ -2181,7 +2181,9 @@ function App() {
         texto:
           error.message?.includes('Insufficient TaiCoins')
             ? 'Você não possui TaiCoins suficientes para essa operação.'
-            : 'A banca não conseguiu selar o ponto de confisco no servidor.',
+            : error.message?.includes('Crash rate limit')
+              ? 'A Comandante bloqueou operações rápidas demais. Aguarde 1 segundo e tente de novo.'
+              : 'A banca não conseguiu selar o ponto de confisco no servidor.',
       })
       return null
     }
@@ -2215,7 +2217,10 @@ function App() {
       console.error('Falha no cashout autoritativo do Crash:', error)
       setMensagem({
         tipo: 'erro',
-        texto: 'O fiscal não conseguiu validar sua retirada no servidor.',
+        texto:
+          error.message?.includes('Crash cashout locked')
+            ? 'A retirada do Crash só é liberada a partir de 1.10x.'
+            : 'O fiscal não conseguiu validar sua retirada no servidor.',
       })
       return null
     }

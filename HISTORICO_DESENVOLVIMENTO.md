@@ -1439,3 +1439,12 @@ O ZIP não inclui `node_modules` nem o `dist` antigo. Isso é intencional: insta
 - Derby: a corredora escolhida cai de 5% para 2% de chance real; o Protocolo Mambo sobe para 98%.
 - Nenhuma dificuldade adaptativa por saldo e nenhum sistema de piedade: as probabilidades são iguais para todos.
 
+## Atualização 2.0.1c — Crash Security Hotfix
+
+- Corrigido o exploit de retirada garantida do Crash do Regime: cashout agora só é aceito pelo servidor a partir de 1.10x.
+- A validação usa o multiplicador bruto calculado pelo relógio do servidor antes do arredondamento.
+- Adicionado mutex/rate limit server-side de 1 segundo entre novas rodadas por conta para conter automação abusiva e concorrência.
+- A tabela de sessões, a tabela de rate limit e todos os helpers do Crash ficam sem acesso direto para anon/authenticated.
+- Apenas get_crash_regime, start_crash_regime e cashout_crash_regime voltam a ter EXECUTE para authenticated.
+- O frontend bloqueia visualmente o botão antes de 1.10x, mas a regra de segurança permanece autoritativa no banco.
+
