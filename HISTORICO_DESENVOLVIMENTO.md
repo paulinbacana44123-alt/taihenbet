@@ -1429,3 +1429,13 @@ O ZIP não inclui `node_modules` nem o `dist` antigo. Isso é intencional: insta
 - Atualizar Museu por eras.
 - Atualizar Ranking / Histórico / Para a Tai / Painel.
 - Depois: Supabase Auth + PostgreSQL + Realtime + permissões de admin.
+
+## Atualização 2.0.1 — Banca Cruel
+
+- Removido o teto artificial de 10.000.000 TaiCoins da carteira autoritativa; o SQL da atualização amplia as colunas monetárias e mantém a proteção contra saldo negativo.
+- Taigrinho rebalanceado: vitórias forçadas muito mais raras, símbolo Tai mais raro e pagamentos reduzidos.
+- TaiMandioca passa a oferecer 8, 11, 14 ou 17 armadilhas; sessões antigas continuam compatíveis no servidor.
+- Crash Regime passa a concentrar a grande maioria das quedas em multiplicadores baixos; multiplicadores altos continuam possíveis, mas raríssimos.
+- Derby: a corredora escolhida cai de 5% para 2% de chance real; o Protocolo Mambo sobe para 98%.
+- Nenhuma dificuldade adaptativa por saldo e nenhum sistema de piedade: as probabilidades são iguais para todos.
+

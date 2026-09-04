@@ -37,40 +37,29 @@ const simbolosTaigrinho = [
     id: 'tai',
     nome: 'Tai',
     imagem: taihenModelo2026,
-    peso: 3,
+    peso: 1,
     pagamentos: {
-      3: 6,
-      4: 12,
-      5: 30,
+      3: 5,
+      4: 10,
+      5: 25,
     },
   },
   {
     id: 'mandioca',
     nome: 'TaiMandioca',
     imagem: taiMandioca,
-    peso: 6,
+    peso: 4,
     pagamentos: {
-      3: 4,
-      4: 8,
-      5: 18,
+      3: 3.5,
+      4: 7,
+      5: 14,
     },
   },
   {
     id: 'sapo-minecraft',
     nome: 'Sapo do Minecraft',
     imagem: sapoMinecraft,
-    peso: 10,
-    pagamentos: {
-      3: 3,
-      4: 6,
-      5: 12,
-    },
-  },
-  {
-    id: 'neymar',
-    nome: 'Neymar do Brasil',
-    imagem: neymarBrasil,
-    peso: 12,
+    peso: 9,
     pagamentos: {
       3: 2.5,
       4: 5,
@@ -78,10 +67,10 @@ const simbolosTaigrinho = [
     },
   },
   {
-    id: 'r-quiabo',
-    nome: 'R Quiabo',
-    imagem: rQuiabo,
-    peso: 15,
+    id: 'neymar',
+    nome: 'Neymar do Brasil',
+    imagem: neymarBrasil,
+    peso: 14,
     pagamentos: {
       3: 2,
       4: 4,
@@ -89,14 +78,25 @@ const simbolosTaigrinho = [
     },
   },
   {
+    id: 'r-quiabo',
+    nome: 'R Quiabo',
+    imagem: rQuiabo,
+    peso: 20,
+    pagamentos: {
+      3: 1.75,
+      4: 3.5,
+      5: 6,
+    },
+  },
+  {
     id: 'tai-infernal',
     nome: 'Tai Infernal',
     imagem: taiInfernal,
-    peso: 20,
+    peso: 28,
     pagamentos: {
-      3: 1.5,
-      4: 3,
-      5: 5,
+      3: 1.3,
+      4: 2.5,
+      5: 4,
     },
   },
 ]
@@ -301,24 +301,24 @@ function fraseDoRegime(
 
 const configuracoesPerigo = [
   {
-    quantidade: 3,
-    titulo: 'Colheita tranquila',
-    descricao: 'Só três mandiocas normais escondidas.',
+    quantidade: 8,
+    titulo: 'Colheita hostil',
+    descricao: 'O modo mais gentil agora já quer seu saldo.',
   },
   {
-    quantidade: 5,
-    titulo: 'Roça questionável',
-    descricao: 'O nível recomendado pela Entidade da Banca.',
+    quantidade: 11,
+    titulo: 'Roça criminosa',
+    descricao: 'A banca recomenda porque a banca não é sua amiga.',
   },
   {
-    quantidade: 7,
-    titulo: 'Plantação suspeita',
-    descricao: 'Mais perigo, mais multiplicador e menos juízo.',
+    quantidade: 14,
+    titulo: 'Plantação condenada',
+    descricao: 'Mais da metade da roça está armada.',
   },
   {
-    quantidade: 10,
-    titulo: 'Safra amaldiçoada',
-    descricao: 'Quase metade da roça quer destruir sua dignidade.',
+    quantidade: 17,
+    titulo: 'Safra apocalíptica',
+    descricao: 'Oito casas seguras. Boa sorte explicando essa decisão.',
   },
 ]
 
@@ -405,7 +405,7 @@ function GamesPage({
   const [
     quantidadeMandiocasNormais,
     setQuantidadeMandiocasNormais,
-  ] = useState(5)
+  ] = useState(11)
   const [partida, setPartida] = useState(null)
   const [taiMandiocaProcessando, setTaiMandiocaProcessando] =
     useState(false)

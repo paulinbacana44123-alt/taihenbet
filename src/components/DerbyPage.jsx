@@ -1012,11 +1012,11 @@ function DerbyPage({
             <div>
               <span>PROTOCOLO MAMBO</span>
               <strong>
-                Sua apostada possui 5% de chance.
+                Sua apostada possui 2% de chance.
               </strong>
               <small>
-                Apostou em outra? Mambo recebe os 95%.
-                Apostou na Mambo? Os 95% restantes viram caos.
+                Apostou em outra? Mambo recebe os 98%.
+                Apostou na Mambo? Os 98% restantes viram caos.
               </small>
             </div>
           </div>
@@ -1324,7 +1324,7 @@ function DerbyPage({
 
             <div className="derby-ticket-probability">
               <span>Chance real da escolhida</span>
-              <strong>5%</strong>
+              <strong>2%</strong>
             </div>
           </div>
 

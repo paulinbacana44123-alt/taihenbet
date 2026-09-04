@@ -2007,7 +2007,7 @@ function App() {
       return null
     }
 
-    if (![3, 5, 7, 10].includes(perigosNumericos)) {
+    if (![8, 11, 14, 17].includes(perigosNumericos)) {
       setMensagem({
         tipo: 'erro',
         texto: 'A banca recusou essa configuração de plantação.',
