@@ -294,6 +294,9 @@ function MuseumPage({
   const [comunidade, setComunidade] = useState([])
   const [carregandoComunidade, setCarregandoComunidade] =
     useState(true)
+  const [curadoriaOverrides, setCuradoriaOverrides] = useState({})
+  const [carregandoCuradoria, setCarregandoCuradoria] =
+    useState(true)
   const [composerOpen, setComposerOpen] = useState(false)
   const [titulo, setTitulo] = useState('')
   const [descricao, setDescricao] = useState('')
@@ -307,6 +310,13 @@ function MuseumPage({
   const [erroSocial, setErroSocial] = useState('')
   const [comentario, setComentario] = useState('')
   const [enviandoComentario, setEnviandoComentario] = useState(false)
+  const [editandoItemId, setEditandoItemId] = useState(null)
+  const [editTitulo, setEditTitulo] = useState('')
+  const [editDescricao, setEditDescricao] = useState('')
+  const [editCategoria, setEditCategoria] = useState('memes')
+  const [editArquivo, setEditArquivo] = useState(null)
+  const [salvandoEdicao, setSalvandoEdicao] = useState(false)
+  const [erroEdicao, setErroEdicao] = useState('')
   const [destaqueId] = useState(
     () =>
       itensDoMuseu[
@@ -362,8 +372,31 @@ function MuseumPage({
     setCarregandoComunidade(false)
   }
 
+  async function carregarCuradoriaOverrides() {
+    setCarregandoCuradoria(true)
+
+    const { data, error } = await supabase.rpc(
+      'get_museum_curated_overrides',
+    )
+
+    if (error) {
+      console.warn('Overrides da curadoria ainda não disponíveis:', error)
+      setCuradoriaOverrides({})
+      setCarregandoCuradoria(false)
+      return
+    }
+
+    setCuradoriaOverrides(
+      data && typeof data === 'object' && !Array.isArray(data)
+        ? data
+        : {},
+    )
+    setCarregandoCuradoria(false)
+  }
+
   useEffect(() => {
     void carregarComunidade()
+    void carregarCuradoriaOverrides()
   }, [session?.user?.id])
 
   async function carregarSocial(postId) {
@@ -490,12 +523,50 @@ function MuseumPage({
 
   const itensCurados = useMemo(
     () =>
-      itensDoMuseu.map((item) => ({
-        ...item,
-        community: false,
-        authorName: 'Curadoria TaihenBet',
-      })),
-    [],
+      itensDoMuseu.map((item) => {
+        const override = curadoriaOverrides?.[item.id] || null
+        const mediaPath = override?.media_path || null
+        let src = item.src
+
+        if (mediaPath) {
+          const { data: publicData } = supabase.storage
+            .from(MUSEUM_BUCKET)
+            .getPublicUrl(mediaPath)
+          src = publicData?.publicUrl || item.src
+        }
+
+        const tipo = ['imagem', 'video'].includes(override?.media_type)
+          ? override.media_type
+          : item.tipo
+        const categoria = ['memes', 'clipes', 'documentos', 'formas'].includes(
+          override?.category,
+        )
+          ? override.category
+          : item.categoria
+
+        return {
+          ...item,
+          titulo:
+            typeof override?.title === 'string'
+              ? override.title
+              : item.titulo,
+          descricao:
+            typeof override?.description === 'string'
+              ? override.description
+              : item.descricao,
+          categoria,
+          tipo,
+          src,
+          poster: mediaPath ? null : item.poster,
+          formato: tipo === 'video' ? 'largo' : item.formato,
+          community: false,
+          curated: true,
+          authorName: 'Curadoria TaihenBet',
+          mediaPath,
+          editedAt: override?.updated_at || null,
+        }
+      }),
+    [curadoriaOverrides],
   )
 
   const todosItens = useMemo(
@@ -666,6 +737,141 @@ function MuseumPage({
     setPublicando(false)
   }
 
+  function validarArquivoDoMuseu(arquivoSelecionado) {
+    if (!arquivoSelecionado) return null
+
+    if (
+      !arquivoSelecionado.type.startsWith('image/') &&
+      !arquivoSelecionado.type.startsWith('video/')
+    ) {
+      return 'O Museu aceita apenas imagens e vídeos.'
+    }
+
+    if (arquivoSelecionado.size > MAX_MEDIA_BYTES) {
+      return 'O arquivo precisa ter no máximo 50 MB.'
+    }
+
+    return null
+  }
+
+  function abrirEditorCuradoria(item) {
+    if (profile?.role !== 'admin' || !item?.curated) return
+
+    setEditandoItemId(item.id)
+    setEditTitulo(item.titulo || '')
+    setEditDescricao(item.descricao || '')
+    setEditCategoria(item.categoria || 'memes')
+    setEditArquivo(null)
+    setErroEdicao('')
+    setSucessoPublicacao('')
+  }
+
+  function fecharEditorCuradoria() {
+    if (salvandoEdicao) return
+    setEditandoItemId(null)
+    setEditArquivo(null)
+    setErroEdicao('')
+  }
+
+  async function salvarEdicaoCuradoria(evento) {
+    evento.preventDefault()
+
+    if (!session?.user || profile?.role !== 'admin') {
+      setErroEdicao('Apenas a administração pode alterar a curadoria oficial.')
+      return
+    }
+
+    const item = itensCurados.find((candidato) => candidato.id === editandoItemId)
+    if (!item) {
+      setErroEdicao('A relíquia não foi encontrada no arquivo atual.')
+      return
+    }
+
+    const tituloFinal = editTitulo.trim()
+    const descricaoFinal = editDescricao.trim()
+
+    if (!tituloFinal) {
+      setErroEdicao('Dê um nome para a relíquia.')
+      return
+    }
+
+    const erroArquivo = validarArquivoDoMuseu(editArquivo)
+    if (erroArquivo) {
+      setErroEdicao(erroArquivo)
+      return
+    }
+
+    setSalvandoEdicao(true)
+    setErroEdicao('')
+
+    let mediaPath = item.mediaPath || null
+    let mediaType = item.tipo
+    let novoUploadPath = null
+
+    if (editArquivo) {
+      mediaType = editArquivo.type.startsWith('video/')
+        ? 'video'
+        : 'imagem'
+      const nomeSeguro = normalizarNomeArquivo(editArquivo.name)
+      novoUploadPath = `${session.user.id}/${crypto.randomUUID()}-${nomeSeguro}`
+
+      const { error: uploadError } = await supabase.storage
+        .from(MUSEUM_BUCKET)
+        .upload(novoUploadPath, editArquivo, {
+          upsert: false,
+          cacheControl: '3600',
+          contentType: editArquivo.type,
+        })
+
+      if (uploadError) {
+        console.error('Falha ao enviar nova mídia da curadoria:', uploadError)
+        setErroEdicao(uploadError.message || 'A nova mídia foi recusada pela banca.')
+        setSalvandoEdicao(false)
+        return
+      }
+
+      mediaPath = novoUploadPath
+    }
+
+    const { error } = await supabase.rpc(
+      'admin_set_museum_curated_override',
+      {
+        p_item_id: item.id,
+        p_title: tituloFinal,
+        p_description: descricaoFinal,
+        p_category: editCategoria,
+        p_media_type: mediaType,
+        p_media_path: mediaPath,
+      },
+    )
+
+    if (error) {
+      console.error('Falha ao salvar edição da curadoria:', error)
+      if (novoUploadPath) {
+        await supabase.storage.from(MUSEUM_BUCKET).remove([novoUploadPath])
+      }
+      setErroEdicao(error.message || 'A edição foi recusada pela curadoria.')
+      setSalvandoEdicao(false)
+      return
+    }
+
+    if (novoUploadPath && item.mediaPath && item.mediaPath !== novoUploadPath) {
+      const { error: removeError } = await supabase.storage
+        .from(MUSEUM_BUCKET)
+        .remove([item.mediaPath])
+
+      if (removeError) {
+        console.warn('Override salvo, mas a mídia anterior ficou no Storage:', removeError)
+      }
+    }
+
+    await carregarCuradoriaOverrides()
+    setEditandoItemId(null)
+    setEditArquivo(null)
+    setSucessoPublicacao(`“${tituloFinal}” foi atualizado sem mexer no código.`)
+    setSalvandoEdicao(false)
+  }
+
   async function removerPublicacao(item) {
     if (!item?.community || !item?.postId || !item?.canDelete) return
 
@@ -707,8 +913,124 @@ function MuseumPage({
     (item) => item.tipo === 'video',
   ).length
 
+  const itemEmEdicao =
+    itensCurados.find((item) => item.id === editandoItemId) || null
+
   return (
     <section className="museum-page">
+      {itemEmEdicao && profile?.role === 'admin' && (
+        <div
+          className="museum-edit-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Editar ${itemEmEdicao.titulo}`}
+          onMouseDown={(evento) => {
+            if (evento.target === evento.currentTarget) {
+              fecharEditorCuradoria()
+            }
+          }}
+        >
+          <form className="museum-edit-card" onSubmit={salvarEdicaoCuradoria}>
+            <div className="museum-edit-heading">
+              <div>
+                <span>CURADORIA ADMINISTRATIVA</span>
+                <h2>Editar relíquia oficial</h2>
+                <p>
+                  A alteração fica salva no Supabase e passa a substituir o
+                  arquivo empacotado no site.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={fecharEditorCuradoria}
+                disabled={salvandoEdicao}
+                aria-label="Fechar editor"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="museum-edit-grid">
+              <label>
+                <span>Título</span>
+                <input
+                  value={editTitulo}
+                  maxLength={90}
+                  onChange={(evento) => setEditTitulo(evento.target.value)}
+                  required
+                />
+              </label>
+
+              <label>
+                <span>Setor</span>
+                <select
+                  value={editCategoria}
+                  onChange={(evento) => setEditCategoria(evento.target.value)}
+                >
+                  <option value="memes">Memes da comunidade</option>
+                  <option value="clipes">Clipes históricos</option>
+                  <option value="documentos">Documentos oficiais</option>
+                  <option value="formas">Formas alternativas</option>
+                </select>
+              </label>
+            </div>
+
+            <label className="museum-edit-description">
+              <span>Descrição</span>
+              <textarea
+                value={editDescricao}
+                maxLength={1200}
+                onChange={(evento) => setEditDescricao(evento.target.value)}
+              />
+            </label>
+
+            <div className="museum-edit-current-media">
+              <span>MÍDIA ATUAL</span>
+              <div>
+                <RenderizarMidia item={itemEmEdicao} />
+              </div>
+            </div>
+
+            <label className="museum-file-picker museum-edit-file-picker">
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+                onChange={(evento) =>
+                  setEditArquivo(evento.target.files?.[0] || null)
+                }
+              />
+              <strong>
+                {editArquivo
+                  ? editArquivo.name
+                  : 'Manter mídia atual ou escolher substituição'}
+              </strong>
+              <span>JPG, PNG, WEBP, GIF, MP4, WEBM ou MOV · até 50 MB</span>
+            </label>
+
+            {erroEdicao && <p className="museum-form-error">{erroEdicao}</p>}
+
+            <div className="museum-edit-actions">
+              <button
+                type="button"
+                className="museum-edit-cancel"
+                onClick={fecharEditorCuradoria}
+                disabled={salvandoEdicao}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="museum-edit-save"
+                disabled={salvandoEdicao}
+              >
+                {salvandoEdicao ? 'Salvando...' : 'Salvar alterações'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       {itemAberto && (
         <div
           className="museum-lightbox"
@@ -767,6 +1089,9 @@ function MuseumPage({
                   {itemAberto.community ? 'PUBLICADO POR' : 'ARQUIVADO POR'}
                   {itemAberto.createdAt
                     ? ` · ${formatarDataMuseu(itemAberto.createdAt)}`
+                    : ''}
+                  {itemAberto.editedAt
+                    ? ` · ATUALIZADO ${formatarDataMuseu(itemAberto.editedAt)}`
                     : ''}
                 </small>
               </div>
@@ -878,6 +1203,16 @@ function MuseumPage({
                     )}
                   </div>
                 </section>
+              )}
+
+              {profile?.role === 'admin' && itemAberto.curated && (
+                <button
+                  type="button"
+                  className="museum-edit-post"
+                  onClick={() => abrirEditorCuradoria(itemAberto)}
+                >
+                  Editar relíquia
+                </button>
               )}
 
               {itemAberto.community && itemAberto.canDelete && (
@@ -1070,15 +1405,21 @@ function MuseumPage({
               {categoria.nome}
             </button>
           ))}
-          <button type="button" onClick={() => void carregarComunidade()}>
+          <button
+            type="button"
+            onClick={() => {
+              void carregarComunidade()
+              void carregarCuradoriaOverrides()
+            }}
+          >
             Atualizar
           </button>
         </div>
       </div>
 
-      {carregandoComunidade && (
+      {(carregandoComunidade || carregandoCuradoria) && (
         <div className="museum-community-loading">
-          Consultando os arquivos da comunidade...
+          Consultando os arquivos do Museu...
         </div>
       )}
 

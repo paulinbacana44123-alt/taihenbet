@@ -752,3 +752,135 @@
     );
 }
 
+/* ================================================================
+   FASE 3.15 — MOBILE: NEYTAI COMO BOTTOM SHEET
+   Mantém a personagem visível sem deixar a fala engolir a tela.
+   ================================================================ */
+@media (max-width: 560px) {
+  .neytai-assistant {
+    right: 8px;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    left: 8px;
+    display: block;
+    max-width: none;
+  }
+
+  .neytai-character {
+    position: absolute;
+    z-index: 5;
+    bottom: calc(100% - 66px);
+    left: 8px;
+    width: 116px;
+    height: 186px;
+    margin: 0;
+    filter: drop-shadow(0 16px 24px rgba(0, 0, 0, 0.52));
+  }
+
+  .neytai-character img {
+    right: 0;
+  }
+
+  .neytai-speech-bubble {
+    display: flex;
+    width: 100%;
+    max-height: min(58dvh, 470px);
+    margin: 0;
+    overflow: hidden;
+    flex-direction: column;
+    padding: 12px;
+    border-radius: 17px;
+  }
+
+  .neytai-bubble-top {
+    min-height: 54px;
+    padding-left: 112px;
+    gap: 8px;
+  }
+
+  .neytai-bubble-top span {
+    max-width: 128px;
+    font-size: 6px;
+  }
+
+  .neytai-bubble-top strong {
+    font-size: 16px;
+  }
+
+  .neytai-bubble-controls {
+    flex-shrink: 0;
+  }
+
+  .neytai-message-scroll {
+    min-height: 0;
+    max-height: min(28dvh, 210px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-top: 10px;
+  }
+
+  .neytai-message-scroll h2 {
+    font-size: clamp(18px, 5.8vw, 22px);
+    line-height: 1.04;
+  }
+
+  .neytai-message-scroll p {
+    font-size: 9px;
+    line-height: 1.55;
+  }
+
+  .neytai-tip-list {
+    gap: 4px;
+    margin-top: 8px;
+  }
+
+  .neytai-tip-list li {
+    padding: 6px 8px 6px 21px;
+    font-size: 7px;
+  }
+
+  .neytai-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 9px;
+  }
+
+  .neytai-actions button {
+    width: 100%;
+    min-height: 38px;
+    padding: 8px 9px;
+    font-size: 8px;
+  }
+
+  .neytai-skip-action {
+    grid-column: 1 / -1;
+    margin-left: 0;
+  }
+
+  .neytai-bubble-tail {
+    display: none;
+  }
+
+  .neytai-floating-button {
+    right: 10px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 390px) {
+  .neytai-character {
+    width: 104px;
+    height: 170px;
+  }
+
+  .neytai-bubble-top {
+    min-height: 49px;
+    padding-left: 98px;
+  }
+
+  .neytai-speech-bubble {
+    max-height: min(60dvh, 450px);
+    padding: 10px;
+  }
+}
+

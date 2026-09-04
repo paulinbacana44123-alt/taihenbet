@@ -139,3 +139,134 @@
     font-size: 10.7px;
   }
 }
+
+/* ======================================================================
+   FASE 3.15 — HEADER MOBILE
+   Em vez de esconder o catálogo, cria linhas próprias para conta e navegação.
+   ====================================================================== */
+@media (max-width: 950px) {
+  .header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'brand account'
+      'nav nav';
+    align-items: center;
+    gap: 9px 12px;
+    min-height: 0;
+    padding: 11px 14px 9px;
+    overflow: visible;
+  }
+
+  .brand-lockup {
+    grid-area: brand;
+    min-width: 0;
+  }
+
+  .header-account-zone {
+    grid-area: account;
+    min-width: 0;
+    margin-left: 0;
+    justify-self: end;
+  }
+
+  .navigation,
+  .header .navigation {
+    grid-area: nav;
+    display: flex !important;
+    width: 100%;
+    min-width: 0;
+    flex: none;
+    justify-content: flex-start !important;
+    gap: 5px;
+    margin: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 1px 0 3px;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .navigation::-webkit-scrollbar {
+    display: none;
+  }
+
+  .navigation > button {
+    flex: 0 0 auto;
+    padding: 8px 10px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  .header-account-zone .wallet-ad-button {
+    display: none !important;
+  }
+}
+
+@media (max-width: 650px) {
+  .header {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'brand'
+      'account'
+      'nav';
+    gap: 8px;
+    padding: 10px 10px 8px;
+  }
+
+  .brand-lockup {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .logo {
+    font-size: 20px;
+  }
+
+  .oracle-header-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .header-account-zone {
+    width: 100%;
+    justify-content: space-between;
+    gap: 7px;
+  }
+
+  .header-account-zone .wallet {
+    min-width: 0;
+    flex: 0 1 auto;
+  }
+
+  .header-account-zone .wallet strong {
+    font-size: 11px;
+  }
+
+  .header-account-zone .mini-coin {
+    width: 17px;
+    height: 17px;
+    margin-right: 5px;
+    font-size: 9px;
+  }
+
+  .navigation > button {
+    min-height: 34px;
+    padding: 7px 9px;
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 390px) {
+  .header-account-zone .wallet strong {
+    font-size: 10px;
+  }
+
+  .navigation > button {
+    padding-inline: 8px;
+  }
+}
+

@@ -18,70 +18,71 @@ const etapas = NEYTAI_DEFAULT_STEPS
 
 const idsValidos = Object.keys(etapas)
 
-function garantirVersaoAtual() {
-  const versaoAnterior = localStorage.getItem(STORAGE_VERSAO)
+function criarChavesStorage(userId) {
+  const escopo = userId ? `user:${userId}` : 'guest'
+
+  return {
+    etapa: `${STORAGE_ETAPA}:${escopo}`,
+    concluido: `${STORAGE_CONCLUIDO}:${escopo}`,
+    versao: `${STORAGE_VERSAO}:${escopo}`,
+  }
+}
+
+function garantirVersaoAtual(chaves) {
+  const versaoAnterior = localStorage.getItem(chaves.versao)
 
   if (versaoAnterior === VERSAO_TOUR) {
     return
   }
 
-  const etapaAnterior = localStorage.getItem(STORAGE_ETAPA)
+  const etapaAnterior = localStorage.getItem(chaves.etapa)
   const jaTinhaConcluido =
-    localStorage.getItem(STORAGE_CONCLUIDO) === 'sim'
+    localStorage.getItem(chaves.concluido) === 'sim'
 
-  localStorage.setItem(STORAGE_VERSAO, VERSAO_TOUR)
+  localStorage.setItem(chaves.versao, VERSAO_TOUR)
 
   // A 3.23c acrescenta quatro áreas que ainda não tinham visita guiada.
-  // Quem já concluiu a versão anterior começa direto nesse bloco novo, sem
-  // precisar refazer quarenta etapas que já viu.
+  // Quem já concluiu esta versão dentro do MESMO escopo começa nas novidades.
   if (jaTinhaConcluido) {
-    localStorage.setItem(STORAGE_ETAPA, 'irFeed')
-    localStorage.removeItem(STORAGE_CONCLUIDO)
+    localStorage.setItem(chaves.etapa, 'irFeed')
+    localStorage.removeItem(chaves.concluido)
     return
   }
 
-  // Se a versão anterior já estava no antigo final/pós-créditos, também volta
-  // apenas para as novidades. Assim Feed, Missões, Evento e Loja não são
-  // pulados por quem instalou a 3.23b primeiro.
   if (
     ['final', 'faltouUmBagui', 'mensagemCriador', 'finalReal'].includes(
       etapaAnterior,
     )
   ) {
-    localStorage.setItem(STORAGE_ETAPA, 'irFeed')
-    localStorage.removeItem(STORAGE_CONCLUIDO)
+    localStorage.setItem(chaves.etapa, 'irFeed')
+    localStorage.removeItem(chaves.concluido)
     return
   }
 
-  // Um tour que estava no meio continua do mesmo ponto quando a etapa ainda
-  // existe. As novas visitas entram naturalmente antes do falso final.
   if (etapaAnterior && idsValidos.includes(etapaAnterior)) {
-    localStorage.setItem(STORAGE_ETAPA, etapaAnterior)
-    localStorage.removeItem(STORAGE_CONCLUIDO)
+    localStorage.setItem(chaves.etapa, etapaAnterior)
+    localStorage.removeItem(chaves.concluido)
     return
   }
 
-  localStorage.removeItem(STORAGE_ETAPA)
-  localStorage.removeItem(STORAGE_CONCLUIDO)
+  localStorage.removeItem(chaves.etapa)
+  localStorage.removeItem(chaves.concluido)
 }
 
-function carregarEtapaInicial() {
-  garantirVersaoAtual()
+function carregarEtapaInicial(chaves) {
+  garantirVersaoAtual(chaves)
 
-  const salva = localStorage.getItem(STORAGE_ETAPA)
+  const salva = localStorage.getItem(chaves.etapa)
 
   return idsValidos.includes(salva)
     ? salva
     : 'boasVindas'
 }
 
-function carregarConcluidoInicial() {
-  garantirVersaoAtual()
+function carregarConcluidoInicial(chaves) {
+  garantirVersaoAtual(chaves)
 
-  return (
-    localStorage.getItem(STORAGE_CONCLUIDO) ===
-    'sim'
-  )
+  return localStorage.getItem(chaves.concluido) === 'sim'
 }
 
 function NeytaiAssistant({
@@ -89,19 +90,27 @@ function NeytaiAssistant({
   pagina,
   onNavigate,
   isAdmin = false,
+  userId = null,
 }) {
-  const [etapaId, setEtapaId] = useState(
-    carregarEtapaInicial,
+  const storageKeys = useMemo(
+    () => criarChavesStorage(userId),
+    [userId],
   )
-  const [concluido, setConcluido] = useState(
-    carregarConcluidoInicial,
-  )
-  const [aberto, setAberto] = useState(
-    () => !carregarConcluidoInicial(),
-  )
+  const [etapaId, setEtapaId] = useState('boasVindas')
+  const [concluido, setConcluido] = useState(false)
+  const [aberto, setAberto] = useState(false)
   const [mensagensCustomizadas, setMensagensCustomizadas] =
     useState({})
   const timersRef = useRef([])
+
+  useEffect(() => {
+    const etapaInicial = carregarEtapaInicial(storageKeys)
+    const concluidoInicial = carregarConcluidoInicial(storageKeys)
+
+    setEtapaId(etapaInicial)
+    setConcluido(concluidoInicial)
+    setAberto(!concluidoInicial)
+  }, [storageKeys])
 
   async function carregarMensagensCustomizadas() {
     try {
@@ -226,10 +235,10 @@ function NeytaiAssistant({
     setConcluido(false)
 
     localStorage.setItem(
-      STORAGE_ETAPA,
+      storageKeys.etapa,
       novaEtapa.id,
     )
-    localStorage.removeItem(STORAGE_CONCLUIDO)
+    localStorage.removeItem(storageKeys.concluido)
 
     if (
       novaEtapa.pagina &&
@@ -299,16 +308,16 @@ function NeytaiAssistant({
     setEtapaId('finalReal')
     window.dispatchEvent(new Event('taihenbet:reveal-creator-message'))
 
-    localStorage.setItem(STORAGE_ETAPA, 'finalReal')
+    localStorage.setItem(storageKeys.etapa, 'finalReal')
     localStorage.setItem(
-      STORAGE_CONCLUIDO,
+      storageKeys.concluido,
       'sim',
     )
   }
 
   function reiniciarTour() {
     setConcluido(false)
-    localStorage.removeItem(STORAGE_CONCLUIDO)
+    localStorage.removeItem(storageKeys.concluido)
     irParaEtapa('boasVindas')
   }
 

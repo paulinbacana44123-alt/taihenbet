@@ -2838,6 +2838,7 @@ function App() {
         pagina={pagina}
         onNavigate={navegarPara}
         isAdmin={podeAcessarPainel}
+        userId={authSession?.user?.id ?? null}
       />
 
       <header className="header">
